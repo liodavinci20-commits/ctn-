@@ -1,0 +1,102 @@
+export const USERS = {
+  enseignant: {
+    id: 'teacher-001',
+    email: 'kamga@ctn.cm',
+    nom: 'Kamga',
+    prenom: 'Denis',
+    name: 'Dr. Kamga Denis',
+    role: 'enseignant',
+    grade: 'PLEG',
+    roleLabel: 'PLEG · Enseignant',
+    av: 'DK',
+    cta: '✦ Nouvelle séance',
+    matricule: 'ENS2024001',
+    is_active: true,
+  },
+  conseiller: {
+    id: 'advisor-001',
+    email: 'essomba@ctn.cm',
+    nom: 'Essomba',
+    prenom: 'Marie',
+    name: 'Mme. Essomba Marie',
+    role: 'conseiller',
+    grade: 'PCEG',
+    roleLabel: 'PCEG · Conseiller Pédagogique',
+    av: 'ME',
+    cta: '◉ Suivi global',
+    matricule: 'CONS2024001',
+    is_active: true,
+  },
+  admin: {
+    id: 'admin-001',
+    email: 'directeur@ctn.cm',
+    nom: 'Directeur',
+    prenom: 'Jean',
+    name: 'M. Jean Directeur',
+    role: 'admin',
+    grade: '',
+    roleLabel: 'Administrateur Système',
+    av: 'JD',
+    cta: '⬥ Administration',
+    matricule: 'ADM2024001',
+    is_active: true,
+  },
+};
+
+export const MENUS = {
+  enseignant: [
+    { id: 'dashboard', icon: '✦', label: 'Tableau de bord', path: '/dashboard' },
+    { id: 'saisie', icon: '◈', label: 'Nouvelle séance', badge: null, path: '/saisie' },
+    { id: 'edt', icon: '◉', label: 'Emploi du temps', path: '/edt' },
+    { id: 'historique', icon: '✶', label: 'Historique des séances', path: '/historique' },
+    { id: 'ressources', icon: '◎', label: 'Ressources pédagogiques', path: '/ressources' },
+    { id: 'notifications', icon: '⚑', label: 'Notifications', badge: 2, path: '/notifications' },
+    { id: 'profil', icon: '◑', label: 'Mon Profil', path: '/profil' },
+  ],
+  conseiller: [
+    { id: 'conseiller', icon: '✦', label: 'Vue globale', path: '/conseiller' },
+    { id: 'dashboard', icon: '◈', label: 'Suivi enseignants', path: '/dashboard' },
+    { id: 'historique', icon: '✶', label: 'Archives séances', path: '/historique' },
+    { id: 'notifications', icon: '⚑', label: 'Notifications', badge: 4, path: '/notifications' },
+    { id: 'admin', icon: '⬥', label: 'Administration', path: '/admin' },
+  ],
+  admin: [
+    { id: 'admin', icon: '⬥', label: 'Administration', path: '/admin' },
+    { id: 'dashboard', icon: '✦', label: 'Tableau de bord', path: '/dashboard' },
+    { id: 'conseiller', icon: '◉', label: 'Vue pédagogique', path: '/conseiller' },
+    { id: 'historique', icon: '✶', label: 'Toutes les séances', path: '/historique' },
+    { id: 'notifications', icon: '⚑', label: 'Notifications', badge: 3, path: '/notifications' },
+  ],
+};
+
+export const PAGE_TITLES = {
+  dashboard: ['Tableau de Bord', 'Mardi 15 Octobre 2024 · Semaine 42'],
+  saisie: ['Nouvelle Séance', 'Saisie du contenu pédagogique'],
+  edt: ['Emploi du Temps', 'Vue hebdomadaire · Semaine 42'],
+  historique: ['Historique des Séances', 'Archives complètes'],
+  ressources: ['Bibliothèque des Ressources', 'Supports pédagogiques'],
+  notifications: ['Notifications', 'Alertes et rappels'],
+  conseiller: ['Vue Conseiller Pédagogique', 'Suivi global · 2024–2025'],
+  admin: ['Administration', 'Gestion du système CTN'],
+  profil: ['Mon Profil', 'Photo et classes enseignées'],
+};
+
+export const MOCK_CLASSES = [
+  { id: 'cls-001', nom: 'Terminale C', niveau: 'Terminale', filiere: 'C', effectif: 32 },
+  { id: 'cls-002', nom: 'Terminale D', niveau: 'Terminale', filiere: 'D', effectif: 35 },
+  { id: 'cls-003', nom: '1ère C',      niveau: '1ère',      filiere: 'C', effectif: 30 },
+  { id: 'cls-004', nom: '1ère D',      niveau: '1ère',      filiere: 'D', effectif: 28 },
+  { id: 'cls-005', nom: '2nde C',      niveau: '2nde',      filiere: 'C', effectif: 40 },
+  { id: 'cls-006', nom: '2nde A',      niveau: '2nde',      filiere: 'A', effectif: 38 },
+];
+
+export const MOCK_MATIERES = [
+  { id: 'mat-001', nom: 'Mathématiques',      code: 'MATH'  },
+  { id: 'mat-002', nom: 'Physique-Chimie',    code: 'PC'    },
+  { id: 'mat-003', nom: 'Informatique',       code: 'INFO'  },
+  { id: 'mat-004', nom: 'Français',           code: 'FR'    },
+  { id: 'mat-005', nom: 'Histoire-Géographie',code: 'HG'    },
+  { id: 'mat-006', nom: 'Anglais',            code: 'ANG'   },
+  { id: 'mat-007', nom: 'SVT',               code: 'SVT'   },
+  { id: 'mat-008', nom: 'Philosophie',        code: 'PHILO' },
+];

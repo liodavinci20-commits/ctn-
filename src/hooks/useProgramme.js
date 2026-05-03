@@ -3,10 +3,20 @@ import { supabase } from '../supabaseClient';
 export function useProgramme() {
 
   // Récupère (ou crée) un programme pour classe + matière
+  const sortChapitres = (data) => {
+    if (!data) return data;
+    return {
+      ...data,
+      programme_chapitres: (data.programme_chapitres || [])
+        .slice()
+        .sort((a, b) => a.ordre - b.ordre),
+    };
+  };
+
   const getOrCreateProgramme = async (classeId, matiereId, userId) => {
     let { data } = await supabase
       .from('programmes')
-      .select('*, programme_chapitres(* order by ordre asc)')
+      .select('*, programme_chapitres(*)')
       .eq('classe_id', classeId)
       .eq('matiere_id', matiereId)
       .maybeSingle();
@@ -15,22 +25,21 @@ export function useProgramme() {
       const { data: created } = await supabase
         .from('programmes')
         .insert({ classe_id: classeId, matiere_id: matiereId, created_by: userId })
-        .select('*, programme_chapitres(* order by ordre asc)')
+        .select('*, programme_chapitres(*)')
         .single();
       data = created;
     }
-    return data;
+    return sortChapitres(data);
   };
 
-  // Récupère un programme existant sans le créer (lecture seule)
   const getProgramme = async (classeId, matiereId) => {
     const { data } = await supabase
       .from('programmes')
-      .select('*, programme_chapitres(* order by ordre asc)')
+      .select('*, programme_chapitres(*)')
       .eq('classe_id', classeId)
       .eq('matiere_id', matiereId)
       .maybeSingle();
-    return data;
+    return sortChapitres(data);
   };
 
   // Ajoute un chapitre

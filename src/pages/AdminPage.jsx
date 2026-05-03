@@ -4,7 +4,7 @@ import { useSessions } from '../context/SessionsContext';
 import { useRattrapages } from '../context/RattrapagesContext';
 import { useNotifications } from '../context/NotificationsContext';
 import SessionDetailModal from '../components/modals/SessionDetailModal';
-import ProgrammeManager from '../components/admin/ProgrammeManager';
+import FicheTableauDynamique from '../components/FicheTableauDynamique';
 import { supabase } from '../supabaseClient';
 
 const ROLE_LABEL = { enseignant: 'Enseignant', conseiller: 'Conseiller', admin: 'Administrateur' };
@@ -17,15 +17,56 @@ export default function AdminPage() {
   const { rattrapages, updateStatus } = useRattrapages();
   const { sendNotification }          = useNotifications();
 
-  const [profiles, setProfiles]         = useState([]);
+  const [profiles, setProfiles]               = useState([]);
   const [loadingProfiles, setLoadingProfiles] = useState(true);
-  const [search, setSearch]             = useState('');
-  const [edtTeacherId, setEdtTeacherId] = useState('');
+  const [search, setSearch]                   = useState('');
+  const [edtTeacherId, setEdtTeacherId]       = useState('');
   const [selectedSession, setSelectedSession] = useState(null);
-  const [togglingId, setTogglingId]     = useState(null);
-  const [actioningId, setActioningId]   = useState(null);
+  const [togglingId, setTogglingId]           = useState(null);
+  const [actioningId, setActioningId]         = useState(null);
+
+  // Section Progression
+  const [progTeacherId, setProgTeacherId] = useState('');
+  const [progClasseId,  setProgClasseId]  = useState('');
+  const [progClasses,   setProgClasses]   = useState([]);
+  const [progRows,      setProgRows]      = useState(null);
+  const [progAnnee,     setProgAnnee]     = useState('2024-2025');
+  const [progLoading,   setProgLoading]   = useState(false);
 
   useEffect(() => { fetchProfiles(); }, []);
+
+  // Charge les classes de l'enseignant sélectionné
+  useEffect(() => {
+    if (!progTeacherId) { setProgClasses([]); setProgClasseId(''); setProgRows(null); return; }
+    supabase
+      .from('profile_classes')
+      .select('classe_id, classe:classe_id(id, nom, niveau)')
+      .eq('profile_id', progTeacherId)
+      .then(({ data }) => {
+        setProgClasses((data || []).map(r => r.classe).filter(Boolean));
+        setProgClasseId('');
+        setProgRows(null);
+      });
+  }, [progTeacherId]);
+
+  // Charge la fiche de progression de l'enseignant pour la classe sélectionnée
+  useEffect(() => {
+    if (!progTeacherId || !progClasseId) { setProgRows(null); return; }
+    setProgLoading(true);
+    supabase
+      .from('fiches_progression_contenu')
+      .select('lignes, annee')
+      .eq('teacher_id', progTeacherId)
+      .eq('classe_id', progClasseId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        setProgRows(data?.lignes ? data.lignes.map(r => ({ fait: false, ...r })) : []);
+        setProgAnnee(data?.annee || '2024-2025');
+        setProgLoading(false);
+      });
+  }, [progTeacherId, progClasseId]);
 
   const fetchProfiles = async () => {
     setLoadingProfiles(true);
@@ -325,8 +366,112 @@ export default function AdminPage() {
         )}
       </div>
 
-      {/* ── Programme officiel ── */}
-      <ProgrammeManager />
+      {/* ── Progression des fiches ── */}
+      <div className="card" style={{ marginTop: '20px' }}>
+        <div className="card-header" style={{ marginBottom: 0, flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <div className="card-title">▣ Progression des fiches par enseignant</div>
+            <div className="card-subtitle">
+              Visualiser la fiche de progression d'un enseignant par classe
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            {/* Sélecteur enseignant */}
+            <select
+              className="form-input"
+              style={{ width: '230px', cursor: 'pointer' }}
+              value={progTeacherId}
+              onChange={e => { setProgTeacherId(e.target.value); }}
+            >
+              <option value="">— Sélectionner un enseignant —</option>
+              {teachers.map(t => (
+                <option key={t.id} value={t.id}>{t.prenom} {t.nom}</option>
+              ))}
+            </select>
+
+            {/* Sélecteur classe */}
+            <select
+              className="form-input"
+              style={{ width: '200px', cursor: 'pointer' }}
+              value={progClasseId}
+              onChange={e => setProgClasseId(e.target.value)}
+              disabled={!progTeacherId || progClasses.length === 0}
+            >
+              <option value="">
+                {!progTeacherId
+                  ? '— Choisir un enseignant —'
+                  : progClasses.length === 0
+                  ? '— Aucune classe assignée —'
+                  : '— Sélectionner une classe —'}
+              </option>
+              {progClasses.map(c => (
+                <option key={c.id} value={c.id}>{c.nom}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Corps de la section */}
+        <div style={{ marginTop: '20px' }}>
+          {/* État initial */}
+          {!progTeacherId && (
+            <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text3)' }}>
+              <div style={{ fontSize: '32px', opacity: 0.4, marginBottom: '12px' }}>▣</div>
+              <p style={{ fontSize: '14px' }}>
+                Sélectionnez un enseignant puis une classe pour visualiser sa fiche de progression.
+              </p>
+            </div>
+          )}
+
+          {/* Enseignant choisi mais pas de classe */}
+          {progTeacherId && !progClasseId && (
+            <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text3)' }}>
+              <p style={{ fontSize: '13px' }}>
+                {progClasses.length > 0
+                  ? 'Sélectionnez maintenant une classe.'
+                  : "Cet enseignant n'a aucune classe assignée dans le système."}
+              </p>
+            </div>
+          )}
+
+          {/* Chargement */}
+          {progLoading && (
+            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text3)' }}>
+              <div style={{
+                width: 24, height: 24, border: '3px solid var(--navy)',
+                borderTopColor: 'transparent', borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite', margin: '0 auto 12px',
+              }} />
+              Chargement de la fiche...
+            </div>
+          )}
+
+          {/* Fiche disponible */}
+          {!progLoading && progRows && progRows.length > 0 && (
+            <FicheTableauDynamique
+              initialData={progRows}
+              classeNom={progClasses.find(c => c.id === progClasseId)?.nom || ''}
+              annee={progAnnee}
+              onSave={() => {}}
+              saving={false}
+              readOnly
+            />
+          )}
+
+          {/* Aucune fiche */}
+          {!progLoading && progRows && progRows.length === 0 && (
+            <div style={{ padding: '40px', textAlign: 'center' }}>
+              <div style={{ fontSize: '28px', marginBottom: '12px', opacity: 0.4 }}>▣</div>
+              <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--navy)', marginBottom: '8px' }}>
+                Aucune fiche disponible
+              </div>
+              <p style={{ fontSize: '12px', color: 'var(--text3)' }}>
+                Cet enseignant n'a pas encore deposé ou extrait de fiche de progression pour cette classe.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
 
       <SessionDetailModal
         isOpen={selectedSession !== null}

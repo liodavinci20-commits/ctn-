@@ -1,574 +1,672 @@
-# 📓 CTN Lycée — Cahier de Texte Numérique
+# CTN Lycée — Cahier de Texte Numérique
 
-> **Application de gestion pédagogique** permettant aux enseignants de documenter leurs séances, aux conseillers pédagogiques de suivre la progression, et aux administrateurs de piloter l'ensemble du système éducatif d'un lycée.
+> Application web de gestion pédagogique pour lycées camerounais.
+> Trois rôles : **Enseignant**, **Conseiller Pédagogique**, **Administrateur**.
+> Backend complet sur **Supabase** (PostgreSQL + Auth + Storage + Realtime).
 
 ![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-8.0-646CFF?logo=vite&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-Ready-3ECF8E?logo=supabase&logoColor=white)
-![License](https://img.shields.io/badge/License-Private-red)
+![Supabase](https://img.shields.io/badge/Supabase-Connected-3ECF8E?logo=supabase&logoColor=white)
 
 ---
 
-## 📋 Table des matières
+## Table des matières
 
-1. [Présentation du projet](#-présentation-du-projet)
-2. [Fonctionnalités principales](#-fonctionnalités-principales)
-3. [Architecture du projet](#-architecture-du-projet)
-4. [Fonctionnement global](#-fonctionnement-global)
-5. [Composants clés](#-composants-clés)
-6. [Gestion des données](#-gestion-des-données)
-7. [Authentification](#-authentification)
-8. [Base de données Supabase](#-base-de-données-supabase)
-9. [Design System](#-design-system)
-10. [Installation & Lancement](#-installation--lancement)
-11. [Points forts & limites](#-points-forts--limites)
-12. [Suggestions d'amélioration](#-suggestions-damélioration)
-
----
-
-## 🎯 Présentation du projet
-
-**CTN Lycée** (Cahier de Texte Numérique) est une application web complète dédiée à la gestion pédagogique des lycées camerounais. Elle remplace le cahier de texte papier traditionnel par une plateforme numérique qui garantit :
-
-- **La traçabilité** : chaque séance est horodatée et géolocalisée
-- **La transparence** : les conseillers pédagogiques et l'administration ont une vue en temps réel
-- **L'archivage** : conservation légale des données sur 5 ans minimum
-- **La responsabilisation** : signature numérique manuscrite obligatoire
-
-Le projet est actuellement en **phase de prototype fonctionnel** avec données simulées (mock data), et dispose d'un schéma de base de données SQL complet prêt à être déployé sur **Supabase**.
+1. [Présentation](#1-présentation)
+2. [Stack technique](#2-stack-technique)
+3. [Supabase — Configuration](#3-supabase--configuration)
+4. [Installation & lancement](#4-installation--lancement)
+5. [Architecture des fichiers](#5-architecture-des-fichiers)
+6. [Base de données — Les 7 étapes](#6-base-de-données--les-7-étapes)
+7. [Contextes React](#7-contextes-react)
+8. [Hooks personnalisés](#8-hooks-personnalisés)
+9. [Pages & fonctionnalités](#9-pages--fonctionnalités)
+10. [Flux métier détaillés](#10-flux-métier-détaillés)
+11. [Comptes de démonstration](#11-comptes-de-démonstration)
+12. [Ce qui reste à faire](#12-ce-qui-reste-à-faire)
 
 ---
 
-## ✨ Fonctionnalités principales
+## 1. Présentation
 
-### 👨‍🏫 Enseignant
-| Fonctionnalité | Description |
-|---|---|
-| **Saisie de séance** | Formulaire complet avec titre, contenu, compétences, devoirs, type de séance, effectif, progression |
-| **Signature manuscrite** | Canvas interactif (souris + tactile) pour signer numériquement chaque séance |
-| **Géolocalisation GPS** | Capture automatique des coordonnées (lat/lng) pour prouver la présence physique |
-| **Emploi du temps** | Grille hebdomadaire éditable avec CRUD complet des créneaux |
-| **Historique** | Tableau des séances saisies avec filtres (classe, période) |
-| **Ressources** | Bibliothèque de documents PDF, vidéos, liens |
-| **Export PDF** | Génération de fiches de séance au format PDF via `html2pdf.js` |
-| **Demande de rattrapage** | Formulaire de soumission avec notification automatique à l'administration |
+**CTN Lycée** remplace le cahier de texte papier par une plateforme numérique qui garantit :
 
-### 👩‍💼 Conseiller Pédagogique
-| Fonctionnalité | Description |
-|---|---|
-| **Vue globale** | Statistiques agrégées (28 enseignants, progression moyenne, retards) |
-| **Suivi par enseignant** | Tableau de progression avec barres visuelles et statuts |
-| **Alertes de retard** | Identification des enseignants en retard dans leur programme |
-| **Chronologie** | Timeline des séances avec statuts (validé / en retard) |
-| **Actions rapides** | Planification de rattrapages, notifications, export de rapports |
-
-### 🔧 Administrateur
-| Fonctionnalité | Description |
-|---|---|
-| **Gestion des utilisateurs** | CRUD des comptes avec rôles (Enseignant, Conseiller, Admin) |
-| **Contrôle des cahiers** | Surveillance en temps réel de toutes les séances saisies |
-| **Gestion des rattrapages** | Approbation / Rejet des demandes avec notification à l'enseignant |
-| **Édition des EDT** | Visualisation et modification des emplois du temps de n'importe quel enseignant |
-| **Modules admin** | Gestion des classes, filières, programmes officiels, archivage légal |
-
-### 🔔 Système transversal
-- **Notifications inter-rôles** : Centre de messagerie avec envoi/réception typé (info, alerte, confirmation)
-- **Toast notifications** : Messages éphémères visuels pour les actions réussies/échouées
-- **Navigation dynamique** : Menu latéral adapté au rôle de l'utilisateur connecté
+- **Traçabilité** — chaque séance est horodatée, géolocalisée et signée numériquement
+- **Transparence** — conseiller et administration ont une vue en temps réel
+- **Archivage** — conservation légale des données
+- **Responsabilisation** — signature manuscrite obligatoire sur canvas HTML5
 
 ---
 
-## 🏗 Architecture du projet
+## 2. Stack technique
 
-```
-ctn-app/
-├── public/
-│   ├── favicon.svg                    # Icône de l'application
-│   └── icons.svg                      # Sprite SVG des icônes
-│
-├── src/
-│   ├── main.jsx                       # Point d'entrée — Providers imbriqués
-│   ├── App.jsx                        # Routeur principal — Gestion des rôles
-│   ├── App.css                        # Styles spécifiques (complémentaires)
-│   ├── index.css                      # Design system complet (752 lignes)
-│   │
-│   ├── context/                       # ── Gestion d'état globale (React Context) ──
-│   │   ├── AuthContext.jsx            # Auth mock — login par rôle, localStorage
-│   │   ├── EdtContext.jsx             # CRUD emploi du temps (par enseignant)
-│   │   ├── SessionsContext.jsx        # CRUD séances pédagogiques
-│   │   ├── NotificationsContext.jsx   # Notifications inter-rôles
-│   │   └── RattrapagesContext.jsx     # Demandes de rattrapage
-│   │
-│   ├── data/
-│   │   └── mockData.js               # Données statiques : USERS, MENUS, PAGE_TITLES
-│   │
-│   ├── components/
-│   │   ├── layout/
-│   │   │   ├── AppLayout.jsx          # Shell principal — Sidebar + Topbar + Outlet
-│   │   │   ├── Sidebar.jsx            # Navigation latérale adaptée au rôle
-│   │   │   └── Topbar.jsx             # Barre supérieure — titre, notifications, CTA
-│   │   │
-│   │   ├── modals/
-│   │   │   ├── CourseModal.jsx        # Ajout / édition d'un cours dans l'EDT
-│   │   │   ├── RattrapageModal.jsx    # Formulaire de demande de rattrapage
-│   │   │   └── SessionDetailModal.jsx # Fiche détaillée d'une séance + export PDF
-│   │   │
-│   │   └── ui/
-│   │       ├── Badge.jsx              # Badge réutilisable (success, warning, danger…)
-│   │       └── Card.jsx               # Carte avec header optionnel
-│   │
-│   └── pages/
-│       ├── LoginPage.jsx              # Connexion + Inscription + Démo rapide
-│       ├── DashboardPage.jsx          # Tableau de bord enseignant
-│       ├── SaisiePage.jsx             # Formulaire de saisie de séance (445 lignes)
-│       ├── EdtPage.jsx                # Emploi du temps hebdomadaire interactif
-│       ├── HistoriquePage.jsx         # Historique des séances avec tableau
-│       ├── RessourcesPage.jsx         # Bibliothèque de fichiers pédagogiques
-│       ├── NotificationsPage.jsx      # Centre de notifications + envoi de messages
-│       ├── ConseillerPage.jsx         # Vue conseiller — suivi global
-│       └── AdminPage.jsx              # Administration système
-│
-├── database.sql                       # Schéma SQL complet pour Supabase (816 lignes)
-├── package.json                       # Dépendances et scripts
-├── vite.config.js                     # Configuration Vite
-└── index.html                         # HTML racine
-```
-
-### Organisation du code
-
-| Couche | Rôle |
-|---|---|
-| `context/` | **State management** — 5 contextes React imbriqués pour l'état global |
-| `data/` | **Données statiques** — Utilisateurs mock, menus par rôle, titres de pages |
-| `components/layout/` | **Structure de l'app** — Sidebar, Topbar, AppLayout (shell) |
-| `components/modals/` | **Dialogues** — Modales CRUD pour cours, rattrapages, détails de séance |
-| `components/ui/` | **Primitives UI** — Badge, Card |
-| `pages/` | **Pages métier** — 9 pages correspondant aux routes |
-
----
-
-## ⚙ Fonctionnement global
-
-### Flux de données (Architecture actuelle — Prototype)
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        main.jsx                                  │
-│  ┌───────────────────────────────────────────────────────────┐   │
-│  │  AuthProvider                                              │   │
-│  │  └→ EdtProvider                                            │   │
-│  │     └→ SessionsProvider                                    │   │
-│  │        └→ NotificationsProvider                            │   │
-│  │           └→ RattrapagesProvider                           │   │
-│  │              └→ <App />                                    │   │
-│  └───────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-
-                         ┌──────────┐
-                         │  App.jsx │
-                         └────┬─────┘
-                              │
-              ┌───────────────┼───────────────┐
-              │               │               │
-         user === null    user !== null   <RoleRedirect>
-              │               │           (→ menu[0].path)
-        ┌─────┴─────┐   ┌────┴────┐
-        │ LoginPage  │   │AppLayout│
-        └────────────┘   │ ├─Sidebar
-                         │ ├─Topbar
-                         │ └─<Outlet>──→ Pages…
-                         └─────────┘
-```
-
-### Routing (React Router v7)
-
-| Route | Composant | Rôle |
+| Couche | Technologie | Version |
 |---|---|---|
-| `*` (non auth) | `LoginPage` | Page de connexion/inscription |
-| `/` | `RoleRedirect` | Redirection vers la 1ère entrée du menu selon le rôle |
-| `/dashboard` | `DashboardPage` | Tableau de bord |
-| `/saisie` | `SaisiePage` | Formulaire de saisie de séance |
-| `/edt` | `EdtPage` | Emploi du temps |
-| `/historique` | `HistoriquePage` | Archives des séances |
-| `/ressources` | `RessourcesPage` | Bibliothèque pédagogique |
-| `/notifications` | `NotificationsPage` | Centre de notifications |
-| `/conseiller` | `ConseillerPage` | Vue conseiller pédagogique |
-| `/admin` | `AdminPage` | Administration générale |
-
-### Flux d'interactions typiques
-
-**1. Saisie d'une séance (enseignant) :**
-```
-SaisiePage → Remplir formulaire → Signer sur canvas → Cliquer "Valider"
-  → navigator.geolocation.getCurrentPosition()
-  → canvas.toDataURL('image/png')  // signature en base64
-  → addSession(sessionData)        // dans SessionsContext
-  → showToast("Séance validée !")
-  → navigate('/historique')
-```
-
-**2. Demande de rattrapage (enseignant → admin) :**
-```
-RattrapageModal → Saisir motif, date, créneau → "Envoyer"
-  → addRattrapage(data)            // dans RattrapagesContext
-  → sendNotification(to: 'admin')  // dans NotificationsContext
-  → showToast("Demande envoyée")
-```
-
-**3. Approbation d'un rattrapage (admin) :**
-```
-AdminPage → Section Rattrapages → "Approuver"
-  → updateStatus(ratt.id, 'approved')
-  → sendNotification(to: enseignant, "Rattrapage approuvé")
-```
+| UI | React | 19.2 |
+| Bundler | Vite | 8.0 |
+| Routing | React Router DOM | 7.14 |
+| Backend | Supabase (PostgreSQL) | — |
+| Auth | Supabase Auth | — |
+| Storage | Supabase Storage | — |
+| Realtime | Supabase Realtime (CDC) | — |
+| PDF export | html2pdf.js | 0.14 |
+| Styles | Vanilla CSS | 752 lignes |
 
 ---
 
-## 🧩 Composants clés
+## 3. Supabase — Configuration
 
-### Pages (Smart Components)
+### Projet actuel
+- **URL** : `https://hfillvzdesjvyhhmgjgc.supabase.co`
+- **Anon Key** : voir `src/supabaseClient.js`
 
-| Composant | Lignes | Rôle | Dépendances contextes |
-|---|---|---|---|
-| `SaisiePage` | 445 | Formulaire complet de saisie de séance avec canvas signature + géolocalisation | `AuthContext`, `SessionsContext` |
-| `LoginPage` | 282 | Connexion (matricule/mdp) + inscription + démo rapide par rôle | `AuthContext` |
-| `AdminPage` | 221 | Administration : utilisateurs, rattrapages, EDT, surveillance | `SessionsContext`, `RattrapagesContext`, `NotificationsContext` |
-| `NotificationsPage` | 202 | Centre de messagerie inter-rôles | `AuthContext`, `NotificationsContext` |
-| `ConseillerPage` | 145 | Tableau de bord de suivi pédagogique global | (données mock inline) |
-| `DashboardPage` | 138 | Dashboard enseignant avec stats, séances récentes, alertes | `AuthContext` |
-| `EdtPage` | 138 | Grille emploi du temps hebdomadaire interactive | `AuthContext`, `EdtContext` |
-| `HistoriquePage` | 93 | Tableau des séances avec recherche et filtres | `AuthContext`, `SessionsContext` |
-| `RessourcesPage` | 93 | Bibliothèque de fichiers pédagogiques | (données mock inline) |
-
-### Composants structurants
-
-| Composant | Rôle |
-|---|---|
-| `AppLayout` | Shell de l'app : Sidebar + Topbar + `<Outlet>`. Gère les toasts globaux et le modal de rattrapage. |
-| `Sidebar` | Navigation latérale : menu dynamique selon `MENUS[user.id]`, badge de notifications non lues. |
-| `Topbar` | Barre supérieure : titre de page dynamique via `PAGE_TITLES`, boutons d'action conditionnels par rôle. |
-
-### Modales
-
-| Composant | Rôle |
-|---|---|
-| `SessionDetailModal` | Fiche détaillée d'une séance : titre, contenu, compétences, devoirs, géolocalisation, signature, export PDF (`html2pdf.js`). |
-| `CourseModal` | Formulaire d'ajout/édition/suppression d'un créneau dans l'emploi du temps. |
-| `RattrapageModal` | Formulaire de demande de rattrapage avec notification automatique à l'admin. |
-
----
-
-## 🔄 Gestion des données
-
-### State Management — React Context API
-
-L'application utilise **5 Context Providers** imbriqués dans `main.jsx` :
-
-```
-AuthProvider          →  user, login(role), logout()
-  EdtProvider         →  getCoursesForTeacher(), addCourse(), updateCourse(), deleteCourse()
-    SessionsProvider  →  sessions, getTeacherSessions(), addSession(), updateSession()
-      NotificationsProvider  →  getNotificationsFor(), sendNotification(), markAllRead(), markOneRead()
-        RattrapagesProvider  →  rattrapages, addRattrapage(), updateStatus(), getPending()
-```
-
-### Flux de données par contexte
-
-| Contexte | Données | Persistance | API exposée |
-|---|---|---|---|
-| `AuthContext` | Utilisateur courant | `localStorage` (`ctn_user`) | `user`, `login(role)`, `logout()` |
-| `EdtContext` | Emplois du temps par enseignant | RAM (état React) | CRUD par `teacherId` |
-| `SessionsContext` | Séances pédagogiques | RAM (état React) | `addSession()`, `updateSession()`, `getTeacherSessions()` |
-| `NotificationsContext` | Notifications inter-rôles | RAM (état React) | `sendNotification()`, `markAllRead()`, compteur unread |
-| `RattrapagesContext` | Demandes de rattrapage | RAM (état React) | `addRattrapage()`, `updateStatus()`, `getPending()` |
-
-### Données statiques (`mockData.js`)
-
-| Export | Contenu |
-|---|---|
-| `USERS` | 3 profils prédéfinis : enseignant (Dr. Kamga), conseiller (Mme. Essomba), admin (Directeur) |
-| `MENUS` | Navigation différenciée par rôle (6 items enseignant, 5 items conseiller/admin) |
-| `PAGE_TITLES` | Titres et sous-titres de page pour la Topbar |
-
----
-
-## 🔐 Authentification
-
-### État actuel (Prototype)
-
-L'authentification est **simulée** via un système mock :
-
-1. **Connexion par rôle** : L'utilisateur sélectionne un profil (Enseignant / Conseiller / Admin) et clique "Se connecter"
-2. **Démo rapide** : 3 boutons permettent une connexion instantanée sans remplir de formulaire
-3. **Inscription simulée** : Formulaire complet avec champs (nom, prénom, email, matricule, mot de passe) — affiche un `alert()` de confirmation
-4. **Persistance** : L'utilisateur est stocké dans `localStorage` sous `ctn_user` pour survivre aux rechargements
-5. **Déconnexion** : Suppression du localStorage et reset de l'état React
-
-### Schéma de base de données prévu (Supabase)
-
-Le fichier `database.sql` prévoit une authentification complète :
-
-- **`auth.users`** : Gérée nativement par Supabase Auth
-- **`public.profiles`** : Table extension liée via `id → auth.users(id)` avec rôle, matricule, grade, établissement
-- **Trigger `handle_new_user()`** : Création automatique du profil dans `profiles` à l'inscription via Supabase Auth, en extrayant `nom`, `prénom`, `role`, `matricule` des `raw_user_meta_data`
-
----
-
-## 🗄 Base de données Supabase
-
-Le fichier `database.sql` (816 lignes) contient le schéma complet prêt pour Supabase.
-
-### Schéma relationnel
-
-```
-┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
-│  etablissements   │───→│  annees_scolaires │    │     matieres      │
-└────────┬─────────┘    └──────────────────┘    └────────┬─────────┘
-         │                                               │
-         │              ┌──────────────────┐             │
-         └──────────────│     profiles      │─────────────┘
-                        │ (auth.users → FK) │     N:N via
-                        └────────┬─────────┘  profile_matieres
-                                 │
-              ┌──────────────────┼──────────────────┐
-              │                  │                   │
-   ┌──────────┴──────┐  ┌───────┴───────┐  ┌───────┴───────┐
-   │     courses      │  │   sessions     │  │  notifications │
-   │  (Emploi du      │  │  (Séances      │  │  (Messages     │
-   │   temps)         │  │   pédagogiques) │  │   inter-rôles) │
-   └──────────────────┘  └───────┬────────┘  └────────────────┘
-                                 │
-              ┌──────────────────┼──────────────────┐
-              │                  │                   │
-   ┌──────────┴──────┐  ┌───────┴───────┐  ┌───────┴───────┐
-   │ session_         │  │ session_       │  │ session_       │
-   │ competences      │  │ devoirs        │  │ resources      │
-   └──────────────────┘  └───────────────┘  └───────┬───────┘
-                                                     │
-                                            ┌────────┴───────┐
-                                            │   resources     │
-                                            │  (Bibliothèque) │
-                                            └────────────────┘
-   ┌──────────────────┐
-   │   rattrapages     │ (Demandes enseignant → admin)
-   └──────────────────┘
-```
-
-### Tables (14 tables)
-
-| # | Table | Description |
+### Buckets Storage à créer manuellement
+| Bucket | Accès | Usage |
 |---|---|---|
-| 1 | `etablissements` | Lycées (nom, ville, région, code) |
-| 2 | `annees_scolaires` | Périodes scolaires pour archivage |
-| 3 | `profiles` | Extension de `auth.users` — rôle, matricule, grade, avatar |
-| 4 | `classes` | Classes (Terminale C, 1ère D…) avec effectif |
-| 5 | `matieres` | Matières enseignées |
-| 6 | `profile_matieres` | Jointure N:N enseignant ↔ matières |
-| 7 | `courses` | Emploi du temps : créneaux hebdomadaires |
-| 8 | `sessions` | **Table cœur métier** — séances pédagogiques avec géolocalisation et signature |
-| 9 | `session_competences` | Compétences visées par séance |
-| 10 | `session_devoirs` | Devoirs assignés par séance |
-| 11 | `resources` | Bibliothèque de fichiers (PDF, vidéo, liens) |
-| 12 | `session_resources` | Jointure séance ↔ ressource |
-| 13 | `notifications` | Messages inter-rôles |
-| 14 | `rattrapages` | Demandes de rattrapage (pending/approved/rejected) |
+| `avatars` | Public | Photos de profil des enseignants |
+| `resources` | Public | Ressources pédagogiques (PDF, images, vidéos) |
 
-### Sécurité — Row Level Security (RLS)
-
-Toutes les 14 tables ont RLS activé avec des politiques granulaires :
-
-| Principe | Mise en œuvre |
-|---|---|
-| **Enseignant** | Lit/écrit uniquement ses propres données (séances, EDT, ressources) |
-| **Conseiller** | Lecture seule sur toutes les séances et EDT |
-| **Admin** | Accès total en lecture/écriture sur toutes les tables |
-| **Données référentielles** | Lecture autorisée pour tous les utilisateurs authentifiés (établissements, classes, matières) |
-| **Notifications** | Chacun lit ses propres notifications ; tout authentifié peut en envoyer |
-
-### Triggers et fonctions
-
-| Trigger | Fonction | Rôle |
-|---|---|---|
-| `on_auth_user_created` | `handle_new_user()` | Crée automatiquement un profil dans `profiles` à l'inscription Supabase |
-| `set_updated_at_profiles` | `update_updated_at()` | Met à jour `updated_at` à chaque modification de profil |
-| `set_updated_at_sessions` | `update_updated_at()` | Met à jour `updated_at` à chaque modification de séance |
-
-### Index de performance
-
-**19 index** créés sur les colonnes les plus requêtées : `teacher_id`, `classe_id`, `date_cours DESC`, `status`, `to_user_id`, etc.
-
-### Seed Data
-
-Le script inclut des données initiales :
-- 1 établissement : **Lycée Général Leclerc** (Yaoundé)
-- 1 année scolaire : **2024–2025**
-- 6 classes : Terminale C/D, 1ère C/D, 2nde C/A
-- 8 matières : Mathématiques, Physique-Chimie, Informatique, Français, Histoire-Géo, Anglais, SVT, Philosophie
+### Politiques Storage
+Les politiques RLS pour les deux buckets sont incluses dans le fichier `database.sql` (Étapes 2 et 3b).
 
 ---
 
-## 🎨 Design System
-
-### Typographie
-- **Titres** : [Syne](https://fonts.google.com/specimen/Syne) (Geometric sans-serif, 400–800)
-- **Corps** : [DM Sans](https://fonts.google.com/specimen/DM+Sans) (300–600)
-
-### Palette de couleurs
-
-| Token | Hex | Utilisation |
-|---|---|---|
-| `--navy` | `#0D1B3E` | Couleur primaire, texte principal, sidebar |
-| `--blue` | `#1B6CA8` | Accents, liens, badges info |
-| `--gold` | `#C9933A` | Avertissements, accents dorés |
-| `--teal` | `#1A8C7A` | Succès, progression positive |
-| `--coral` | `#D95F4B` | Erreurs, retards, danger |
-| `--cream` | `#F5F2EA` | Fond principal de l'app |
-
-### Composants CSS documentés
-Cards, Badges, Buttons, Tables, Progress bars, Alerts, Timeline, Modals, Forms, Calendar grid, EDT grid, Toast notifications, Drop zones, Chips, Search bars — **tous entièrement stylisés en Vanilla CSS** (752 lignes).
-
-### Responsive
-- 4 breakpoints : `1200px`, `900px`, `768px`, `480px`
-- Sidebar se réduit à 70px (icônes seules) sous 768px
-- Grilles se passent en colonne unique sous 1200px
-- Login : la partie gauche (branding) disparaît sous 480px
-
----
-
-## 🚀 Installation & Lancement
-
-### Prérequis
-- Node.js ≥ 18
-- npm ≥ 9
-
-### Installation
+## 4. Installation & lancement
 
 ```bash
-# Cloner le projet
-git clone <repo-url>
-cd ctn-app
+# 1. Cloner le repo
+git clone https://github.com/liodavinci20-commits/ctn-.git
+cd ctn-
 
-# Installer les dépendances
+# 2. Installer les dépendances
 npm install
-```
 
-### Lancement en développement
-
-```bash
+# 3. Lancer en développement
 npm run dev
-```
+# → http://localhost:5173
 
-L'application sera disponible sur `http://localhost:5173`.
-
-### Build de production
-
-```bash
+# 4. Build production
 npm run build
 npm run preview
 ```
 
-### Connexion rapide
-
-Sur la page de login, utilisez les boutons **"Démonstration rapide"** :
-- 🟢 **Enseignant** → Dashboard + Saisie de séances
-- 🔵 **Conseiller** → Vue globale pédagogique
-- 🟡 **Admin** → Administration complète
+### Initialisation de la base de données
+Ouvrir le fichier `database.sql` et coller chaque bloc **ÉTAPE** dans le **SQL Editor** de Supabase, dans l'ordre 1 → 2 → 3 → 3b → 4 → 5 → 6 → 7.
 
 ---
 
-## 💪 Points forts
+## 5. Architecture des fichiers
 
-| Point fort | Détails |
-|---|---|
-| **Architecture claire** | Séparation nette context / pages / components / data |
-| **UI premium** | Design soigné avec palette harmonieuse, micro-animations, glassmorphism |
-| **Multi-rôle complet** | 3 rôles avec menus, permissions et vues distinctes |
-| **Géolocalisation** | Preuve de présence physique lors de la validation des séances |
-| **Signature manuscrite** | Canvas HTML5 avec support tactile |
-| **Export PDF** | Génération de fiches de séance au format PDF |
-| **SQL prêt pour production** | 816 lignes avec tables, RLS, triggers, index, seed data |
-| **Responsive** | 4 breakpoints, navigation adaptative |
-| **Notifications inter-rôles** | Système de messagerie complet avec compteur |
-
-## ⚠ Limites actuelles
-
-| Limite | Impact |
-|---|---|
-| **Données mock** | Toutes les données sont en mémoire React (perdues au refresh, sauf auth) |
-| **Pas de backend connecté** | Supabase n'est pas encore intégré côté React |
-| **Auth simulée** | Pas de vraie authentification (email/mot de passe) |
-| **Pas d'upload réel** | Le drag & drop de fichiers est uniquement visuel |
-| **Barre de recherche non fonctionnelle** | Les champs de recherche/filtres sont présents mais non câblés |
-| **Données métier hardcodées** | Progression, statistiques, enseignants dans ConseillerPage sont en dur |
-| **Pas de validation formulaire côté client** | Peu de validations au-delà du `required` HTML |
-| **Pas de tests** | Aucun test unitaire ou d'intégration |
-
----
-
-## 🚧 Processus en cours (Intégration Supabase)
-
-**Phase 1 terminée : Migration Backend Core**
-✅ **SDK & Client** : Configuration de `@supabase/supabase-js` branchée sur le projet.
-✅ **Authentification** : Re-câblage complet de de `LoginPage.jsx` sur Supabase Auth (Connexion / Inscription).
-✅ **Contextes de données** : Réecriture de tous les contextes (`Auth`, `Sessions`, `Edt`, `Notifications`, `Rattrapages`) remplaçant les données mockées par les tables PostgreSQL, en gérant le RLS et Realtime Notifications.
-✅ **Données de référence** : Hook `useReferenceData` créé pour lier les formulaires de création aux vraies métadonnées (classes, matières).
-
-**Prochaines étapes pour la reprise :**
-1. 🔧 **Comptes de test** : Créer physiquement (`enseignant@ctn.cm`, `conseiller@ctn.cm`, `admin@ctn.cm` / Mdp : `Demo@1234`) depuis votre interface pour réanimer les boutons de démo rapide.
-2. 🗂 **Storage (Bucket)** : Terminer l'intégration de l'upload réel des Fichiers Pédagogiques dans le bucket `resources` via la `SaisiePage` et la `RessourcesPage`.
-3. 🧪 **Tests Live UI** : Lancer le portail `npm run dev`, vérifier qu'il n'y a pas de warning sur les props liés à la transition de structures d'objet et valider le cycle complet d'une séance (géolocalisation / canvas / insertion).
-
----
-
-## 🔮 Suggestions d'amélioration
-
-### 🔴 Priorité haute — Finalisation Production
-
-1. **Storage** : Finaliser l'Upload de Fichiers Réel dans le bucket `resources` sur Supabase.
-2. **Synchronisation Vues** : Mettre les pages `ConseillerPage` et `HistoriquePage` parfaitement à jour pour correspondre aux données relationnelles structurées.
-
-### 🟡 Priorité moyenne — Qualité UX
-
-5. **Validation de formulaire** : Ajouter une librairie comme `zod` ou `react-hook-form` pour la saisie de séance
-6. **Recherche et filtres** : Câbler les barres de recherche (historique, ressources, notifications)
-7. **Composants de chargement** : Ajouter des skeletons/spinners pour les appels réseau
-8. **Gestion d'erreurs** : `ErrorBoundary` React + gestion des erreurs Supabase
-9. **Mode hors ligne** : Cache local avec synchronisation (les enseignants peuvent avoir un réseau instable)
-
-### 🟢 Priorité basse — Améliorations
-
-10. **Tests** : Jest + React Testing Library pour les composants critiques
-11. **Accessibilité** : ARIA labels, navigation au clavier, contraste
-12. **Internationalisation** : Support FR/EN avec `react-i18next`
-13. **Performance** : Lazy loading des pages (`React.lazy`), `React.memo` sur les composants lourds
-14. **PWA** : Service Worker pour installation sur mobile
+```
+ctn-app/
+├── database.sql                        # Schéma SQL complet — 7 étapes
+├── src/
+│   ├── main.jsx                        # Point d'entrée — 5 Providers imbriqués
+│   ├── App.jsx                         # Routeur — gestion des rôles
+│   ├── supabaseClient.js               # Client Supabase (URL + anon key)
+│   │
+│   ├── context/                        # State management global
+│   │   ├── AuthContext.jsx             # Auth Supabase + profil utilisateur
+│   │   ├── SessionsContext.jsx         # CRUD séances pédagogiques
+│   │   ├── EdtContext.jsx              # CRUD emploi du temps
+│   │   ├── NotificationsContext.jsx    # Notifications + Realtime
+│   │   └── RattrapagesContext.jsx      # Demandes de rattrapage
+│   │
+│   ├── hooks/
+│   │   ├── useReferenceData.js         # Classes + matières (profil enseignant)
+│   │   ├── useProgramme.js             # Programmes officiels + progression
+│   │   └── useResources.js            # Ressources pédagogiques (Storage)
+│   │
+│   ├── data/
+│   │   └── mockData.js                 # Menus par rôle, titres de pages
+│   │
+│   ├── components/
+│   │   ├── admin/
+│   │   │   └── ProgrammeManager.jsx    # Gestion chapitres par admin
+│   │   ├── layout/
+│   │   │   ├── AppLayout.jsx           # Shell — Sidebar + Topbar + Outlet
+│   │   │   ├── Sidebar.jsx             # Navigation + photo de profil
+│   │   │   └── Topbar.jsx             # Titre, notifications, CTA
+│   │   ├── modals/
+│   │   │   ├── CourseModal.jsx         # Ajout/édition créneau EDT
+│   │   │   ├── RattrapageModal.jsx     # Demande de rattrapage
+│   │   │   └── SessionDetailModal.jsx  # Détail séance + export PDF
+│   │   └── ui/
+│   │       ├── Badge.jsx
+│   │       └── Card.jsx
+│   │
+│   └── pages/
+│       ├── LoginPage.jsx               # Connexion + inscription Supabase Auth
+│       ├── DashboardPage.jsx           # Dashboard enseignant
+│       ├── ProfilePage.jsx             # Photo + classes + matières + progression
+│       ├── SaisiePage.jsx              # Formulaire séance + chapitres + GPS + signature
+│       ├── EdtPage.jsx                 # Grille emploi du temps
+│       ├── HistoriquePage.jsx          # Historique des séances
+│       ├── RessourcesPage.jsx          # Bibliothèque pédagogique
+│       ├── NotificationsPage.jsx       # Centre de notifications
+│       ├── ConseillerPage.jsx          # Vue conseiller — suivi progression
+│       └── AdminPage.jsx               # Administration complète
+```
 
 ---
 
-## 📦 Dépendances
+## 6. Base de données — Les 7 étapes
 
-### Production
-| Package | Version | Usage |
+Chaque étape correspond à un bloc SQL dans `database.sql` à coller dans le SQL Editor de Supabase.
+
+### Étape 1 — Authentification & Profils
+**Table :** `profiles`
+
+Extension de `auth.users` (Supabase Auth). Créée automatiquement par un trigger à chaque inscription.
+
+| Colonne | Type | Description |
 |---|---|---|
-| `react` | ^19.2.4 | Framework UI |
-| `react-dom` | ^19.2.4 | Rendu DOM |
-| `react-router-dom` | ^7.14.0 | Routing SPA |
-| `html2pdf.js` | ^0.14.0 | Export de séances en PDF |
+| `id` | uuid | Lié à `auth.users(id)` |
+| `nom`, `prenom` | text | Identité |
+| `email` | text | Email de connexion |
+| `role` | text | `enseignant` / `conseiller` / `admin` |
+| `matricule` | text | Numéro matricule |
+| `avatar_url` | text | URL photo (Supabase Storage `avatars`) |
+| `is_active` | boolean | Compte actif/désactivé |
 
-### Développement
-| Package | Version | Usage |
+**Trigger `handle_new_user()`** — crée le profil automatiquement à l'inscription en lisant les `raw_user_meta_data` (nom, prénom, rôle, matricule).
+
+**RLS :** tout authentifié peut lire, chacun modifie son propre profil.
+
+---
+
+### Étape 2 — Classes & Photo de profil
+**Tables :** `classes`, `profile_classes`
+
+- `classes` — liste des classes du lycée (Terminale C, 1ère D…) avec seed data
+- `profile_classes` — jointure N:N enseignant ↔ classes qu'il enseigne
+- Storage policies pour le bucket `avatars`
+
+**Usage React :** `useReferenceData(userId)` → `myClasses`, `saveMyClasses(ids)`
+
+---
+
+### Étape 3 — Séances pédagogiques
+**Tables :** `sessions`, `session_competences`, `session_devoirs`
+
+Table cœur métier. Chaque séance contient :
+- Titre, contenu, matière, classe, date
+- Type (Cours / TP / TD / Évaluation / Rattrapage)
+- Effectif présent/total, progression, observations
+- **Signature** (base64 PNG du canvas HTML5)
+- **Géolocalisation** (lat/lng/time via `navigator.geolocation`)
+- Compétences visées (table liée `session_competences`)
+- Devoirs assignés (table liée `session_devoirs`)
+
+**RLS :** enseignant voit/modifie ses séances ; conseiller/admin voient tout.
+
+---
+
+### Étape 3b — Ressources pédagogiques
+**Table :** `resources`
+
+Métadonnées des fichiers uploadés dans le bucket `resources`.
+
+| Colonne | Description |
+|---|---|
+| `nom` | Nom du fichier |
+| `type` | `pdf` / `video` / `image` / `lien` / `autre` |
+| `url` | URL publique Supabase Storage |
+| `taille` | Taille formatée (ex : "2.4 Mo") |
+| `classe` | Classe associée (texte libre) |
+
+**Usage React :** `useResources(userId)` → `uploadFile()`, `addLink()`, `deleteResource()`
+
+---
+
+### Étape 4 — Emploi du temps
+**Table :** `courses`
+
+Créneaux hebdomadaires de l'enseignant.
+
+| Colonne | Description |
+|---|---|
+| `jour` | Lundi / Mardi… |
+| `heure_debut`, `heure_fin` | Format `08h00` |
+| `matiere`, `classe`, `salle` | Texte |
+| `couleur` | `blue` / `teal` / `gold` / `coral` / `navy` |
+
+**RLS :** enseignant CRUD ses cours ; admin/conseiller lecture seule.
+
+---
+
+### Étape 5 — Notifications
+**Table :** `notifications`
+
+Messagerie inter-rôles avec **Supabase Realtime** (les notifications apparaissent instantanément sans refresh).
+
+| Colonne | Description |
+|---|---|
+| `from_user_id` | Expéditeur (UUID réel) |
+| `to_user_id` | Destinataire (UUID réel) |
+| `type` | `info` / `warn` / `success` |
+| `title`, `body` | Contenu |
+| `read` | Marqué comme lu |
+
+**Realtime :** `NotificationsContext` souscrit au canal `notifs_${user.id}` et écoute les `INSERT`.
+
+---
+
+### Étape 6 — Rattrapages
+**Table :** `rattrapages`
+
+Demandes de rattrapage soumises par l'enseignant, traitées par l'admin.
+
+| Colonne | Description |
+|---|---|
+| `teacher_id`, `teacher_name` | Enseignant demandeur |
+| `classe`, `classe_id` | Classe concernée |
+| `date_proposee`, `creneau` | Quand |
+| `motif` | Raison du rattrapage |
+| `status` | `pending` / `approved` / `rejected` |
+| `decided_by`, `decided_at` | Admin qui a traité |
+
+**Flux :** Enseignant soumet → notification admin → Admin approuve/rejette → notification retour enseignant.
+
+---
+
+### Étape 7 — Matières, Programmes & Progression
+**Tables :** `matieres`, `profile_matieres`, `programmes`, `programme_chapitres`, `teacher_progress`
+
+Système de suivi de progression basé sur les programmes officiels définis par l'admin.
+
+**`matieres`** — liste des matières (seed data : Mathématiques, Physique-Chimie, Informatique, Français, Histoire-Géo, Anglais, SVT, Philosophie)
+
+**`profile_matieres`** — jointure N:N enseignant ↔ matières qu'il enseigne
+
+**`programmes`** — programme officiel par (classe, matière, année). Ex : Terminale C × Mathématiques × 2024-2025
+
+**`programme_chapitres`** — chapitres d'un programme, ordonnés. Ex :
+- Chap 1 — Les fonctions
+- Chap 2 — Les algorithmes
+- Chap 3 — Les probabilités
+
+**`teacher_progress`** — chapitres couverts par chaque enseignant. Lié à la séance qui a couvert le chapitre.
+
+**Calcul progression :** `COUNT(teacher_progress) / COUNT(programme_chapitres) × 100`
+
+---
+
+## 7. Contextes React
+
+Les 5 contextes sont imbriqués dans `main.jsx` dans cet ordre :
+
+```
+AuthProvider
+  └─ EdtProvider
+       └─ SessionsProvider
+            └─ NotificationsProvider
+                 └─ RattrapagesProvider
+                      └─ <App />
+```
+
+### AuthContext
+- `user` — objet utilisateur complet (id, nom, prénom, role, email, matricule, avatar_url, av)
+- `loading` — true pendant la vérification de session au démarrage
+- `signIn(email, password)` — `supabase.auth.signInWithPassword()`
+- `signUp(email, password, metadata)` — `supabase.auth.signUp()` + trigger crée le profil
+- `signOut()` / `logout()` — déconnexion Supabase
+- `login(role)` — connexion rapide démo avec `enseignant@ctn.cm` / `conseiller@ctn.cm` / `admin@ctn.cm`
+- `refreshProfile()` — recharge le profil sans déconnecter (utilisé après upload photo)
+- **Persistance :** `onAuthStateChange` + `getSession()` au démarrage
+
+### SessionsContext
+- `sessions` — tableau de toutes les séances (filtrées par RLS)
+- `addSession(data)` — insert session + compétences + devoirs
+- `updateSession(id, data)` — update + supprime/réinsère compétences/devoirs
+- `getTeacherSessions(teacherId)` — filtre local
+- `fetchSessions()` — recharge depuis Supabase
+
+### EdtContext
+- `courses` — tous les créneaux (filtrés par RLS)
+- `addCourse(teacherId, formData)` — insert
+- `updateCourse(teacherId, id, formData)` — update
+- `deleteCourse(teacherId, id)` — delete
+- `getCoursesForTeacher(teacherId)` — filtre local
+
+### NotificationsContext
+- `notifications` — toutes les notifs de l'utilisateur connecté
+- `unreadCountFor()` — compte des non lues (utilisé dans la sidebar)
+- `markOneRead(id)` / `markAllRead()` — update en base
+- `sendNotification({ toUserId, type, title, body })` — insert en base
+- **Realtime :** souscription au canal `notifs_${user.id}` — nouvelles notifs sans refresh
+
+### RattrapagesContext
+- `rattrapages` — toutes les demandes (RLS : enseignant voit les siennes, admin voit tout)
+- `addRattrapage(data)` — insert avec statut `pending`
+- `updateStatus(id, status, decidedById)` — admin approuve/rejette
+- `getPending()` — filtre local sur `status === 'pending'`
+
+---
+
+## 8. Hooks personnalisés
+
+### useReferenceData(userId)
+Charge classes et matières depuis Supabase, filtre celles assignées à l'utilisateur.
+
+```js
+const {
+  classes,        // toutes les classes du lycée
+  myClasses,      // classes assignées à cet enseignant
+  matieres,       // toutes les matières
+  myMatieres,     // matières assignées à cet enseignant
+  loading,
+  getClasseIdByName(nom),   // → uuid
+  getMatiereIdByName(nom),  // → uuid
+  saveMyClasses(ids),       // sauvegarde en DB
+  saveMyMatieres(ids),      // sauvegarde en DB
+} = useReferenceData(user.id);
+```
+
+### useProgramme()
+Gestion des programmes officiels et de la progression.
+
+```js
+const {
+  getProgramme(classeId, matiereId),             // lecture seule
+  getOrCreateProgramme(classeId, matiereId, userId), // crée si inexistant
+  addChapitre(programmeId, titre, desc, ordre),
+  updateChapitre(id, updates),
+  deleteChapitre(id),
+  getDoneChapitreIds(teacherId, programmeId),    // → [uuid, ...]
+  getProgressPct(teacherId, programmeId),        // → { pct, done, total }
+  markChapitre(teacherId, chapitreId, sessionId), // marque comme couvert
+  unmarkChapitre(teacherId, chapitreId),
+} = useProgramme();
+```
+
+### useResources(userId)
+Gestion des ressources pédagogiques (Storage + DB).
+
+```js
+const {
+  resources,      // liste depuis DB
+  loading,
+  uploading,
+  uploadFile(file, classe),   // upload Storage + insert DB
+  addLink({ nom, url, classe }), // insert DB uniquement
+  deleteResource(resource),   // delete DB + Storage
+  stats,          // { pdf, video, image, lien, total }
+} = useResources(user.id);
+```
+
+---
+
+## 9. Pages & fonctionnalités
+
+### LoginPage `/` (non authentifié)
+- Connexion email/password → `supabase.auth.signInWithPassword()`
+- Inscription → `supabase.auth.signUp()` avec métadonnées (nom, prénom, rôle, matricule)
+- 3 boutons démo rapide → `enseignant@ctn.cm`, `conseiller@ctn.cm`, `admin@ctn.cm`
+- **Important :** désactiver la confirmation email dans Supabase pour les tests
+
+### ProfilePage `/profil` (enseignant uniquement)
+- **Photo de profil** — upload vers bucket `avatars`, URL stockée dans `profiles.avatar_url`
+- **Informations personnelles** — lecture seule (nom, email, matricule, rôle)
+- **Résumé affectation** — carte affichant classes et matières assignées
+- **Classes enseignées** — checkboxes depuis DB + recherche → sauvegardé dans `profile_classes`
+- **Matières enseignées** — checkboxes depuis DB + recherche → sauvegardé dans `profile_matieres`
+- **Progression par programme** — une carte par combinaison (classe × matière) avec barre de progression et liste des chapitres
+
+### SaisiePage `/saisie` (enseignant)
+- **En-tête** — enseignant auto-rempli, matière (dropdown `myMatieres`), classe (dropdown `myClasses`)
+- **Programme officiel** — chapitres chargés depuis DB quand classe + matière changent ; barre de progression ; enseignant sélectionne le chapitre du jour
+- **Contenu** — titre, sous-titre, plan, textarea, compétences (chips + suggestions), devoirs
+- **Ressources** — bouton import fichier (PC et mobile) + ajout lien
+- **Infos complémentaires** — type séance, effectif, progression, observations
+- **Validation** — canvas signature HTML5 (souris + tactile) + GPS obligatoire
+- **À la validation** — insert DB + marque le chapitre comme couvert dans `teacher_progress`
+
+### EdtPage `/edt` (enseignant + admin)
+- Grille hebdomadaire (Lundi→Vendredi, 4 créneaux)
+- Créneaux remplis : fond coloré, matière en couleur, classe, pastille salle
+- Créneaux vides : `+` centré, hover crème
+- Clic → `CourseModal` avec classe chargée depuis `profile_classes`
+- `key={modalKey}` force le remount à chaque ouverture (formulaire toujours vierge)
+
+### HistoriquePage `/historique` (tous les rôles)
+- Tableau des séances depuis Supabase
+- Filtres par classe et période
+- Clic → `SessionDetailModal` avec export PDF
+
+### RessourcesPage `/ressources` (enseignant)
+- Bouton "Importer" → `<input type="file">` (PC et mobile)
+- Upload vers bucket `resources` → métadonnées en DB
+- Ajout de lien externe
+- Recherche + filtre par type
+- Suppression (DB + Storage)
+- Statistiques en temps réel
+
+### NotificationsPage `/notifications` (tous)
+- Liste des notifications depuis Supabase
+- Destinataires chargés depuis `profiles` (vrais comptes)
+- Formulaire d'envoi → `sendNotification({ toUserId, type, title, body })`
+- Marquage lu/non lu persisté en base
+- **Realtime :** badge sidebar mis à jour instantanément
+
+### ConseillerPage `/conseiller` (conseiller + admin)
+- Stats en temps réel (nb enseignants, progression moyenne, retards, séances)
+- Tableau de progression : enseignants depuis `profiles`, sessions comptées depuis `sessions`
+- Objectif : 20 séances par trimestre → calcul progression automatique
+- Alertes : enseignants < 50% de progression
+- Timeline : 10 dernières séances depuis Supabase
+- Recherche enseignants en temps réel
+
+### AdminPage `/admin` (admin)
+- **Stats** — enseignants actifs, séances, total utilisateurs (depuis DB)
+- **Gestion utilisateurs** — liste depuis `profiles`, recherche par nom/email/matricule/rôle, activation/désactivation
+- **Cahiers de textes** — 20 dernières séances avec noms enseignants réels
+- **Rattrapages** — approuver/rejeter avec notification retour enseignant
+- **EDT enseignants** — select chargé depuis DB → affiche `EdtPage` en lecture/écriture
+- **Programmes officiels** — composant `ProgrammeManager` : sélectionner classe + matière → CRUD chapitres
+
+---
+
+## 10. Flux métier détaillés
+
+### Flux authentification
+```
+LoginPage → signIn() → supabase.auth.signInWithPassword()
+  → onAuthStateChange → fetchProfile() → profiles table
+  → setUser({ id, nom, prénom, rôle, avatar_url, ... })
+  → RoleRedirect → première page du menu selon rôle
+```
+
+### Flux saisie de séance
+```
+SaisiePage
+  → sélectionne classe (myClasses) + matière (myMatieres)
+  → getProgramme(classeId, matiereId) → charge chapitres
+  → getDoneChapitreIds() → barre de progression
+  → rempli le formulaire
+  → canvas signature + GPS obligatoires
+  → "Signer et Valider"
+    → addSession(sessionData) → sessions + competences + devoirs en DB
+    → markChapitre(teacherId, chapitreId) → teacher_progress en DB
+    → navigate('/historique')
+```
+
+### Flux rattrapage
+```
+RattrapageModal (enseignant)
+  → sélectionne classe (myClasses), date, créneau, motif
+  → addRattrapage() → rattrapages table (status: pending)
+  → sendNotification(adminId) → notifications table
+  → admin reçoit en temps réel (Realtime)
+
+AdminPage (admin)
+  → voit demande dans liste
+  → handleRattrapageAction('approved' | 'rejected')
+  → updateStatus() → rattrapages table (status: approved/rejected)
+  → sendNotification(teacherId) → notification retour
+  → enseignant reçoit en temps réel
+```
+
+### Flux programme & progression
+```
+AdminPage → ProgrammeManager
+  → sélectionne classe + matière
+  → getOrCreateProgramme() → programmes table
+  → addChapitre(titre, desc, ordre) → programme_chapitres table
+
+ProfilePage (enseignant)
+  → loadProgress()
+    → getProgramme(classeId, matiereId)
+    → getDoneChapitreIds(teacherId)
+    → calcule pct = done / total × 100
+    → affiche cartes avec barres de progression
+
+SaisiePage (enseignant)
+  → sélectionne classe + matière → chapitres chargés
+  → coche le chapitre du jour
+  → à la validation → markChapitre() → teacher_progress table
+```
+
+---
+
+## 11. Comptes de démonstration
+
+Créer ces comptes dans **Supabase → Authentication → Users → Add user** :
+
+| Email | Mot de passe | Rôle à définir dans `profiles` |
 |---|---|---|
-| `vite` | ^8.0.4 | Bundler & dev server |
-| `@vitejs/plugin-react` | ^6.0.1 | JSX/React HMR |
-| `eslint` | ^9.39.4 | Linting |
-| `eslint-plugin-react-hooks` | ^7.0.1 | Règles React Hooks |
+| `enseignant@ctn.cm` | `Demo@1234` | `enseignant` |
+| `conseiller@ctn.cm` | `Demo@1234` | `conseiller` |
+| `admin@ctn.cm` | `Demo@1234` | `admin` |
+
+> Après création, aller dans **Table Editor → profiles** et définir manuellement le champ `role` pour chaque compte.
+
+> Désactiver la confirmation email : **Authentication → Settings → Email → décocher "Confirm email"**.
 
 ---
 
-## 📄 Licence
+## 12. Ce qui reste à faire
 
-Projet privé — Tous droits réservés.
+### Priorité haute
+- [x] ~~**Upload ressources dans SaisiePage**~~ — ✅ Résolu : fichiers et liens uploadés vers Supabase Storage à la validation, liés à la séance via `session_id`
+- [ ] **Barre de progression ConseillerPage** — connecter à `teacher_progress` pour afficher la vraie progression par programme au lieu du calcul basé sur le nombre de séances
+
+### Priorité moyenne
+- [ ] **Historique des rattrapages** — page de suivi pour l'enseignant (voir statut de ses demandes)
+- [ ] **Recherche et filtres** — `HistoriquePage` : barres de recherche non câblées sur Supabase
+- [ ] **Skeletons/spinners** — états de chargement uniformes sur toutes les pages
+- [ ] **Gestion d'erreurs** — `ErrorBoundary` React + toast sur erreurs Supabase
+
+### Priorité basse
+- [ ] **Mode hors ligne** — cache local pour les enseignants avec réseau instable
+- [ ] **Tests** — Jest + React Testing Library sur les composants critiques
+- [ ] **PWA** — Service Worker pour installation mobile
+- [ ] **Accessibilité** — ARIA labels, navigation clavier
 
 ---
 
-> *Développé avec ❤️ pour le système éducatif camerounais.*
+## 13. Séance de développement — 02 mai 2026
+
+### Améliorations réalisées
+
+#### Ressources pédagogiques — Bibliothèque
+- **Lien ressources ↔ séances** : ajout de `session_id` (FK nullable) sur la table `resources`
+- **Upload câblé dans SaisiePage** : les fichiers et liens attachés lors de la saisie d'une séance sont désormais uploadés vers Supabase Storage et liés à la séance via `session_id`
+- **Vue "Par séance"** dans `RessourcesPage` : les ressources sont groupées sous l'en-tête de leur séance (titre, date, matière, classe). Les ressources sans séance tombent dans "Bibliothèque générale"
+- **Vue "Historique"** (groupée par mois) et **Vue "Liste"** (plate)
+- **Filtre par classe** extrait dynamiquement des données réelles
+- **Tri** : récent, ancien, nom A→Z, par type
+- **Fiche détail** au clic avec suppression et confirmation en 2 temps
+- **Badges colorés** par type de ressource (PDF, Vidéo, Image, Lien)
+- **URL visible** directement sur chaque carte ressource
+
+#### Tableau de bord
+- **Stats connectées** à Supabase : séances documentées, taux de signature, classes en charge, rattrapages en attente — avec **compteurs animés** (0 → valeur réelle)
+- **Bandeau de bienvenue** personnalisé (salutation selon l'heure, prénom de l'enseignant)
+- **Séances récentes** depuis la vraie table `sessions` : date, titre, classe, compétences, badge signé/non signé
+- **Alertes réelles** : rattrapages `pending` + séances non signées
+- **Prochain cours** calculé depuis l'EDT réel (cherche le prochain créneau à partir de l'heure actuelle)
+- **Notifications non lues** : badge et carte si non lues
+- **Progression par classe** : affiche les vraies classes assignées (valeurs % à venir)
+
+#### Page de saisie
+- Renommage : "Grand titre de la leçon" → **"Unité d'apprentissage"**, "Sous-titre / Chapitre" → **"Unité d'enseignement"**
+- Réorganisation : les **Compétences visées** remontent juste après "Unité d'enseignement"
+
+#### Fiche de Progression (nouvelle fonctionnalité)
+- **Nouvel onglet "▣ Fiche de Progression"** dans la sidebar enseignant
+- **Table SQL** `fiches_progression` : dépôt de fichiers PDF/Word/Excel par classe et par année scolaire
+- **Barre de complétion globale** (X% des classes avec fiche déposée)
+- **Sélecteur d'année scolaire** (2024-2025, 2025-2026, 2026-2027)
+- Actions par carte classe : Télécharger, Remplacer, Supprimer (avec confirmation)
+
+#### Extraction intelligente de fiche de progression
+- **Table SQL** `fiches_progression_contenu` (JSONB) : stocke le tableau extrait ligne par ligne
+- **Hook `useExtractionFiche`** : extraction PDF via `pdfjs-dist`, OCR image via `Tesseract.js`
+- **Algorithme de parsing robuste** :
+  - Déduplication des items dupliqués (artefacts PDF multi-couches)
+  - Ancrage sur les **numéros de semaine** (1–52) pour ignorer l'en-tête du document
+  - Détection adaptative des colonnes depuis la vraie ligne d'en-tête du tableau
+  - Propagation des cellules fusionnées (Trimestre, Module, UA, Énoncé)
+- **Composant `FicheTableauDynamique`** :
+  - En-tête double niveau ("Nature" → LT/LP + LD)
+  - Cellules fusionnées avec `rowspan` automatique
+  - Texte vertical pour colonnes Module et UA
+  - Édition au clic de chaque cellule (propagation aux lignes du groupe pour cellules fusionnées)
+  - Déplacer / Insérer / Supprimer des lignes
+  - Sauvegarde en base (JSONB) + rechargement automatique
+
+### Nouvelles tables SQL (à exécuter dans Supabase)
+
+```sql
+-- Session_id sur resources
+ALTER TABLE public.resources
+  ADD COLUMN IF NOT EXISTS session_id uuid REFERENCES public.sessions(id) ON DELETE SET NULL;
+
+-- Fiches de progression (fichiers)
+CREATE TABLE public.fiches_progression ( ... ); -- voir database.sql Étape 8
+
+-- Contenu dynamique extrait
+CREATE TABLE public.fiches_progression_contenu ( ... ); -- voir database.sql Étape 9
+```
+
+### Nouvelles dépendances
+
+```json
+{
+  "pdfjs-dist": "^5.7.284",
+  "tesseract.js": "^6.x"
+}
+```
+
+### Nouveaux fichiers
+
+| Fichier | Description |
+|---|---|
+| `src/hooks/useProgression.js` | Upload/fetch/delete des fiches de progression (fichiers) |
+| `src/hooks/useExtractionFiche.js` | Extraction PDF/image + parsing intelligent + sauvegarde |
+| `src/hooks/useResources.js` | Mis à jour : `session_id` + fetch avec données de séance |
+| `src/pages/ProgressionPage.jsx` | Page complète : fiches + tableau dynamique |
+| `src/components/FicheTableauDynamique.jsx` | Tableau éditable avec rowspan, texte vertical, tri |
+
+---
+
+## Dépendances
+
+```json
+{
+  "dependencies": {
+    "@supabase/supabase-js": "^2.103.3",
+    "html2pdf.js": "^0.14.0",
+    "pdfjs-dist": "^5.7.284",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.14.0",
+    "tesseract.js": "^6.0.0"
+  }
+}
+```
+
+---
+
+> Développé avec Claude Code pour le système éducatif camerounais.

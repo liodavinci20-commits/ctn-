@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
-const ICONS = { pdf: '📄', video: '▶', image: '⬦', lien: '⊹', autre: '◎' };
+const ICONS    = { pdf: '📄', video: '▶', image: '⬦', lien: '⊹', autre: '◎' };
 const TYPE_CSS = { pdf: 'res-pdf', video: 'res-vid', image: 'res-img', lien: 'res-lnk', autre: 'res-pdf' };
 
 function detectType(file) {
@@ -18,6 +18,14 @@ function formatSize(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
+function decorateResource(r) {
+  return {
+    ...r,
+    icon:    ICONS[r.type]    || '◎',
+    typeCSS: TYPE_CSS[r.type] || 'res-pdf',
+  };
+}
+
 export function useResources(userId) {
   const [resources, setResources] = useState([]);
   const [loading, setLoading]     = useState(false);
@@ -31,22 +39,24 @@ export function useResources(userId) {
     setLoading(true);
     const { data, error } = await supabase
       .from('resources')
-      .select('*')
+      .select(`
+        *,
+        session:session_id (
+          id, titre, date_cours, matiere,
+          classe:classe_id ( nom )
+        )
+      `)
       .order('created_at', { ascending: false });
 
     if (error) console.error('Erreur fetch resources:', error.message);
-    else setResources((data || []).map(r => ({
-      ...r,
-      icon:    ICONS[r.type]    || '◎',
-      typeCSS: TYPE_CSS[r.type] || 'res-pdf',
-    })));
+    else setResources((data || []).map(decorateResource));
     setLoading(false);
   };
 
   // Upload un fichier dans Storage puis enregistre les métadonnées
-  const uploadFile = async (file, classe = '') => {
+  // sessionId optionnel : lie la ressource à une séance spécifique
+  const uploadFile = async (file, classe = '', sessionId = null) => {
     setUploading(true);
-    const ext  = file.name.split('.').pop();
     const path = `${userId}/${Date.now()}_${file.name}`;
     const type = detectType(file);
 
@@ -70,23 +80,25 @@ export function useResources(userId) {
       url:        publicUrl,
       taille:     formatSize(file.size),
       classe:     classe || 'Toutes',
+      session_id: sessionId || null,
     });
 
     if (dbError) throw new Error(dbError.message);
-
     await fetchResources();
     setUploading(false);
   };
 
   // Ajoute un lien externe (pas de fichier)
-  const addLink = async ({ nom, url, classe }) => {
+  // sessionId optionnel : lie le lien à une séance spécifique
+  const addLink = async ({ nom, url, classe }, sessionId = null) => {
     const { error } = await supabase.from('resources').insert({
       teacher_id: userId,
       nom,
-      type:   'lien',
+      type:       'lien',
       url,
-      taille: '',
-      classe: classe || 'Toutes',
+      taille:     '',
+      classe:     classe || 'Toutes',
+      session_id: sessionId || null,
     });
     if (error) throw new Error(error.message);
     await fetchResources();
@@ -96,7 +108,6 @@ export function useResources(userId) {
   const deleteResource = async (resource) => {
     await supabase.from('resources').delete().eq('id', resource.id);
 
-    // Si c'est un fichier Storage (pas un lien externe), on le supprime aussi
     if (resource.type !== 'lien') {
       const urlParts = resource.url.split('/resources/');
       if (urlParts.length > 1) {
@@ -107,13 +118,12 @@ export function useResources(userId) {
     await fetchResources();
   };
 
-  // Stats calculées depuis les données
   const stats = {
-    pdf:    resources.filter(r => r.type === 'pdf').length,
-    video:  resources.filter(r => r.type === 'video').length,
-    image:  resources.filter(r => r.type === 'image').length,
-    lien:   resources.filter(r => r.type === 'lien').length,
-    total:  resources.length,
+    pdf:   resources.filter(r => r.type === 'pdf').length,
+    video: resources.filter(r => r.type === 'video').length,
+    image: resources.filter(r => r.type === 'image').length,
+    lien:  resources.filter(r => r.type === 'lien').length,
+    total: resources.length,
   };
 
   return { resources, loading, uploading, uploadFile, addLink, deleteResource, stats, refetch: fetchResources };

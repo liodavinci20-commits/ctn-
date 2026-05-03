@@ -3,13 +3,23 @@ import { useAuth } from '../context/AuthContext';
 import { useSessions } from '../context/SessionsContext';
 import { useReferenceData } from '../hooks/useReferenceData';
 import { useProgramme } from '../hooks/useProgramme';
+import { useResources } from '../hooks/useResources';
 import { useOutletContext, useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
+import FicheTableauDynamique from '../components/FicheTableauDynamique';
+
+function currentAnnee() {
+  const now = new Date();
+  const y = now.getFullYear();
+  return (now.getMonth() + 1) >= 9 ? `${y}-${y + 1}` : `${y - 1}-${y}`;
+}
 
 export default function SaisiePage() {
   const { user } = useAuth();
   const { addSession, updateSession } = useSessions();
   const { myClasses: classes, myMatieres, getClasseIdByName, getMatiereIdByName } = useReferenceData(user?.id);
   const { getProgramme, getDoneChapitreIds, markChapitre } = useProgramme();
+  const { uploadFile, addLink: addResourceLink } = useResources(user?.id);
   const { showToast } = useOutletContext() || {};
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,6 +34,7 @@ export default function SaisiePage() {
   const [validing, setValiding]     = useState(false);
   const [resFiles, setResFiles]     = useState([]);
   const [resLink, setResLink]       = useState('');
+  const [resLinkNom, setResLinkNom] = useState('');
 
   // Form State
   const [classe, setClasse] = useState(editSession?.classe || classes[0]?.nom || '');
@@ -36,6 +47,13 @@ export default function SaisiePage() {
   const [devoirs, setDevoirs] = useState(editSession?.devoirs || [{ desc: 'Exercices 3, 4, 5 p.92 sur la complexité', date: '2024-10-22' }]);
   const [selectedChips, setSelectedChips] = useState({ type: editSession?.typeSeance || 'Cours' });
   const [allChips, setAllChips] = useState({ eleves: ['Tout le groupe'] });
+
+  // Prévisualisation + edition progression depuis la saisie
+  const [showProgModal, setShowProgModal] = useState(false);
+  const [progRows,      setProgRows]      = useState(null);
+  const [progAnnee,     setProgAnnee]     = useState('2024-2025');
+  const [progLoading,   setProgLoading]   = useState(false);
+  const [progSaving,    setProgSaving]    = useState(false);
 
   // Programme & chapitres
   const [programme, setProgramme]             = useState(null);
@@ -50,6 +68,81 @@ export default function SaisiePage() {
   useEffect(() => {
     if (!editSession && classes.length > 0 && !classe) setClasse(classes[0].nom);
   }, [classes, editSession]);
+
+  // Réinitialise le cache de progression si la classe change
+  useEffect(() => { setProgRows(null); }, [classe]);
+
+  const ouvrirProgression = async () => {
+    const classeId = getClasseIdByName(classe);
+    if (!classeId || !user?.id) return;
+    setShowProgModal(true);
+    if (progRows !== null) return; // deja charge pour cette classe
+    setProgLoading(true);
+    try {
+      // Pas de filtre sur l'annee : on prend le record le plus recent pour cette classe
+      const { data } = await supabase
+        .from('fiches_progression_contenu')
+        .select('lignes, annee')
+        .eq('teacher_id', user.id)
+        .eq('classe_id', classeId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data?.lignes) {
+        setProgRows(data.lignes.map(r => ({ fait: false, ...r })));
+        setProgAnnee(data.annee || currentAnnee());
+      } else {
+        setProgRows([]);
+      }
+    } finally {
+      setProgLoading(false);
+    }
+  };
+
+  const sauvegarderProgression = async (rows) => {
+    const classeId = getClasseIdByName(classe);
+    if (!classeId || !user?.id) return;
+    setProgSaving(true);
+    try {
+      const done  = rows.filter(r => r.fait).length;
+      const total = rows.length;
+
+      // Upsert lignes
+      const { data: existing } = await supabase
+        .from('fiches_progression_contenu')
+        .select('id')
+        .eq('teacher_id', user.id)
+        .eq('classe_id', classeId)
+        .eq('annee', progAnnee)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from('fiches_progression_contenu')
+          .update({ lignes: rows })
+          .eq('id', existing.id);
+      } else {
+        await supabase
+          .from('fiches_progression_contenu')
+          .insert({ teacher_id: user.id, classe_id: classeId, classe_nom: classe, annee: progAnnee, lignes: rows });
+      }
+
+      // Upsert avancement pour le Suivi Collectif
+      await supabase
+        .from('progression_avancement')
+        .upsert(
+          { teacher_id: user.id, classe_id: classeId, classe_nom: classe, annee: progAnnee, done, total },
+          { onConflict: 'teacher_id,classe_id,annee' }
+        );
+
+      setProgRows(rows);
+      if (showToast) showToast('Progression sauvegardee.', 'success');
+    } catch (err) {
+      if (showToast) showToast('Erreur : ' + err.message, 'error');
+    } finally {
+      setProgSaving(false);
+    }
+  };
 
   // Sélectionne la première matière dispo
   useEffect(() => {
@@ -219,6 +312,25 @@ export default function SaisiePage() {
             if (showToast) showToast('✦ Séance modifiée et mise à jour !', 'success');
           } else {
             savedSession = await addSession(sessionData);
+
+            // Upload toutes les ressources attachées à cette séance
+            if (resFiles.length > 0) {
+              for (const r of resFiles) {
+                try {
+                  if (r.file) {
+                    await uploadFile(r.file, classe, savedSession.id);
+                  } else {
+                    await addResourceLink(
+                      { nom: r.nom, url: r.url, classe },
+                      savedSession.id
+                    );
+                  }
+                } catch (e) {
+                  console.error('Erreur upload ressource:', e.message);
+                }
+              }
+            }
+
             if (showToast) showToast('✦ Séance validée et insérée dans le cahier !', 'success');
           }
 
@@ -246,6 +358,84 @@ export default function SaisiePage() {
 
   return (
     <div className="page active fade-in">
+
+      {/* ── MODAL PRÉVISUALISATION PROGRESSION ── */}
+      {showProgModal && (
+        <div
+          onClick={e => { if (e.target === e.currentTarget) setShowProgModal(false); }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(10,20,50,0.65)',
+            display: 'flex', alignItems: 'flex-start',
+            justifyContent: 'center', padding: '24px 16px',
+            overflowY: 'auto',
+          }}
+        >
+          <div style={{
+            background: '#fff', borderRadius: '14px', width: '100%',
+            maxWidth: '1020px', padding: '24px',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.3)',
+            marginTop: '16px',
+          }}>
+            {/* En-tête modal */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              marginBottom: '18px', flexWrap: 'wrap', gap: '10px',
+            }}>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '16px', color: 'var(--navy)' }}>
+                  Fiche de progression — {classe}
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
+                  Annee {progAnnee} · Cochez les semaines effectuees puis sauvegardez
+                </div>
+              </div>
+              <button
+                onClick={() => setShowProgModal(false)}
+                className="btn btn-ghost btn-sm"
+                style={{ flexShrink: 0 }}
+              >
+                x Fermer
+              </button>
+            </div>
+
+            {/* Contenu */}
+            {progLoading && (
+              <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text3)' }}>
+                <div style={{
+                  width: 24, height: 24, border: '3px solid var(--navy)',
+                  borderTopColor: 'transparent', borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite', margin: '0 auto 12px',
+                }} />
+                Chargement de la fiche…
+              </div>
+            )}
+
+            {!progLoading && progRows?.length > 0 && (
+              <FicheTableauDynamique
+                initialData={progRows}
+                classeNom={classe}
+                annee={progAnnee}
+                onSave={sauvegarderProgression}
+                saving={progSaving}
+              />
+            )}
+
+            {!progLoading && progRows?.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text3)' }}>
+                <div style={{ fontSize: '36px', marginBottom: '12px' }}>▣</div>
+                <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--navy)', marginBottom: '8px' }}>
+                  Aucune fiche disponible pour {classe}
+                </div>
+                <p style={{ fontSize: '12px', maxWidth: '320px', margin: '0 auto' }}>
+                  Importez et structurez votre fiche de progression depuis l'onglet <strong>Fiche de Progression</strong>.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="section-title">
         <h3>{editSession ? '✦ Corriger la Séance' : '✦ Nouvelle Séance'}</h3>
         <p>{editSession ? "Modifiez les informations. L'empreinte GPS sera actualisée lors de l'enregistrement." : "Renseignez les informations de la séance. Les champs marqués d'un ✶ sont obligatoires."}</p>
@@ -284,7 +474,22 @@ export default function SaisiePage() {
             </div>
             <div className="form-row cols-3">
               <div className="form-field">
-                <label>Classe ✶</label>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>Classe ✶</span>
+                  <button
+                    type="button"
+                    onClick={ouvrirProgression}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      fontSize: '10px', color: 'var(--navy)', fontWeight: 700,
+                      display: 'flex', alignItems: 'center', gap: '3px',
+                      padding: '2px 0',
+                    }}
+                    title="Voir la fiche de progression de cette classe"
+                  >
+                    ▣ Voir progression
+                  </button>
+                </label>
                 <select className="field-select" value={classe} onChange={e => setClasse(e.target.value)}>
                   {classes.map(c => (
                     <option key={c.id} value={c.nom}>{c.nom}</option>
@@ -396,44 +601,18 @@ export default function SaisiePage() {
             <div className="card-header"><div><div className="card-title">✶ Contenu de la leçon</div></div></div>
             <div className="form-row">
               <div className="form-field">
-                <label>Grand titre de la leçon ✶</label>
+                <label>Unité d'apprentissage ✶</label>
                 <input className="field-input" value={title} onChange={e => setTitle(e.target.value)} />
               </div>
             </div>
-            <div className="form-row cols-2">
+            <div className="form-row">
               <div className="form-field">
-                <label>Sous-titre / Chapitre</label>
+                <label>Unité d'enseignement</label>
                 <input className="field-input" defaultValue="Notions de complexité temporelle" />
-              </div>
-              <div className="form-field">
-                <label>Plan de séance</label>
-                <input className="field-input" defaultValue="I · Introduction  II · Complexités  III · Comparaison" />
               </div>
             </div>
 
             <div className="form-field" style={{ marginBottom: '16px' }}>
-              <label>Contenu détaillé de la séance ✶</label>
-              <div className="editor-toolbar">
-                <button className="editor-btn"><b>G</b></button>
-                <button className="editor-btn"><i>I</i></button>
-                <button className="editor-btn"><u>S</u></button>
-                <div className="editor-sep"></div>
-                <button className="editor-btn">≡</button>
-                <button className="editor-btn">1.</button>
-                <div className="editor-sep"></div>
-                <button className="editor-btn" title="Surligner" style={{ background: 'rgba(232,180,85,0.2)' }}>⬦</button>
-                <button className="editor-btn" title="Rouge" style={{ color: 'var(--coral)' }}>A</button>
-                <button className="editor-btn" title="Bleu" style={{ color: 'var(--blue)' }}>A</button>
-              </div>
-              <textarea 
-                className="field-textarea" 
-                style={{ minHeight: '120px', borderRadius: '0 0 8px 8px', borderTop: 'none', resize: 'vertical' }} 
-                value={content} 
-                onChange={e => setContent(e.target.value)} 
-              />
-            </div>
-
-            <div className="form-field">
               <label>Compétences visées ✶</label>
               <div className="comp-list">
                 {competences.map((c, i) => (
@@ -454,6 +633,35 @@ export default function SaisiePage() {
                   <span className="comp-sugg" key={i} onClick={() => addComp(s)}>+ {s}</span>
                 ))}
               </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-field">
+                <label>Plan de séance</label>
+                <input className="field-input" defaultValue="I · Introduction  II · Complexités  III · Comparaison" />
+              </div>
+            </div>
+
+            <div className="form-field">
+              <label>Contenu détaillé de la séance ✶</label>
+              <div className="editor-toolbar">
+                <button className="editor-btn"><b>G</b></button>
+                <button className="editor-btn"><i>I</i></button>
+                <button className="editor-btn"><u>S</u></button>
+                <div className="editor-sep"></div>
+                <button className="editor-btn">≡</button>
+                <button className="editor-btn">1.</button>
+                <div className="editor-sep"></div>
+                <button className="editor-btn" title="Surligner" style={{ background: 'rgba(232,180,85,0.2)' }}>⬦</button>
+                <button className="editor-btn" title="Rouge" style={{ color: 'var(--coral)' }}>A</button>
+                <button className="editor-btn" title="Bleu" style={{ color: 'var(--blue)' }}>A</button>
+              </div>
+              <textarea
+                className="field-textarea"
+                style={{ minHeight: '120px', borderRadius: '0 0 8px 8px', borderTop: 'none', resize: 'vertical' }}
+                value={content}
+                onChange={e => setContent(e.target.value)}
+              />
             </div>
           </div>
           
@@ -567,7 +775,8 @@ export default function SaisiePage() {
               style={{ display: 'none' }}
               onChange={e => {
                 const newFiles = Array.from(e.target.files).map(f => ({
-                  name: f.name,
+                  nom:  f.name,
+                  url:  null,
                   size: f.size > 1024 * 1024
                     ? `${(f.size / (1024 * 1024)).toFixed(1)} Mo`
                     : `${(f.size / 1024).toFixed(0)} Ko`,
@@ -578,15 +787,17 @@ export default function SaisiePage() {
               }}
             />
 
-            {/* Liste des fichiers sélectionnés */}
+            {/* Liste des fichiers / liens sélectionnés */}
             {resFiles.length > 0 && (
               <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {resFiles.map((r, i) => (
                   <div className="ressource-item" key={i}>
-                    <div className="ressource-icon res-pdf">📄</div>
+                    <div className={`ressource-icon ${r.file ? 'res-pdf' : 'res-lnk'}`}>
+                      {r.file ? '📄' : '⊹'}
+                    </div>
                     <div style={{ flex: 1 }}>
-                      <div className="ressource-name">{r.name}</div>
-                      <div className="ressource-meta">{r.size}</div>
+                      <div className="ressource-name">{r.nom}</div>
+                      <div className="ressource-meta">{r.file ? r.size : 'Lien externe'}</div>
                     </div>
                     <span
                       style={{ color: 'var(--coral)', cursor: 'pointer', fontSize: '18px' }}
@@ -598,25 +809,42 @@ export default function SaisiePage() {
             )}
 
             {/* Ajouter un lien */}
-            <div className="form-field" style={{ marginTop: '14px' }}>
-              <label>Ajouter un lien hypertexte</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="form-field">
+                <label>Titre du lien</label>
                 <input
                   className="field-input"
-                  style={{ flex: 1 }}
-                  placeholder="https://..."
-                  value={resLink}
-                  onChange={e => setResLink(e.target.value)}
+                  placeholder="Ex: Cours en ligne — Khan Academy"
+                  value={resLinkNom}
+                  onChange={e => setResLinkNom(e.target.value)}
                 />
-                <button
-                  type="button"
-                  className="btn btn-navy btn-sm"
-                  onClick={() => {
-                    if (!resLink.trim()) return;
-                    setResFiles(prev => [...prev, { name: resLink, size: 'Lien', file: null }]);
-                    setResLink('');
-                  }}
-                >+ Ajouter</button>
+              </div>
+              <div className="form-field">
+                <label>URL</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    className="field-input"
+                    style={{ flex: 1 }}
+                    placeholder="https://..."
+                    value={resLink}
+                    onChange={e => setResLink(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-navy btn-sm"
+                    onClick={() => {
+                      if (!resLink.trim()) return;
+                      setResFiles(prev => [...prev, {
+                        nom:  resLinkNom.trim() || resLink,
+                        url:  resLink,
+                        size: 'Lien',
+                        file: null,
+                      }]);
+                      setResLink('');
+                      setResLinkNom('');
+                    }}
+                  >+ Ajouter</button>
+                </div>
               </div>
             </div>
           </div>

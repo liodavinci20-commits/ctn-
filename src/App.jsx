@@ -14,6 +14,8 @@ import NotificationsPage from './pages/NotificationsPage';
 import ConseillerPage from './pages/ConseillerPage';
 import AdminPage from './pages/AdminPage';
 import ProfilePage from './pages/ProfilePage';
+import ProgressionPage from './pages/ProgressionPage';
+import SuiviCollectifPage from './pages/SuiviCollectifPage';
 
 function RoleRedirect() {
   const { user } = useAuth();
@@ -65,6 +67,8 @@ export default function App() {
            <Route path="ressources" element={<RessourcesPage />} />
            <Route path="notifications" element={<NotificationsPage />} />
 
+           <Route path="progression" element={<ProgressionPage />} />
+           <Route path="suivi" element={<SuiviCollectifPage />} />
            <Route path="conseiller" element={<ConseillerPage />} />
            <Route path="admin" element={<AdminPage />} />
            <Route path="profil" element={<ProfilePage />} />

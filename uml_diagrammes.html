@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CTN Lycee — Diagrammes UML</title>
+<style>
+  :root {
+    --navy:#1a2744; --teal:#1db8a0; --gold:#e5a919; --coral:#e05c5c;
+    --bg:#f3f5fa; --card:#ffffff; --border:#e0e4ef;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--navy);}
+  .app-header{
+    background:var(--navy);color:#fff;padding:20px 40px;
+    display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 2px 12px rgba(0,0,0,.25);
+  }
+  .app-header h1{font-size:20px;font-weight:700;letter-spacing:.5px;}
+  .app-header p{font-size:12px;color:rgba(255,255,255,.6);margin-top:2px;}
+  .badge-stack{display:flex;gap:8px;}
+  .badge-stack span{background:rgba(255,255,255,.12);border-radius:20px;font-size:11px;padding:3px 10px;color:rgba(255,255,255,.8);}
+  .tabs{display:flex;background:var(--navy);padding:0 40px;border-top:1px solid rgba(255,255,255,.08);}
+  .tab{padding:12px 24px;font-size:13px;font-weight:600;cursor:pointer;color:rgba(255,255,255,.5);border-bottom:3px solid transparent;transition:all .2s;user-select:none;}
+  .tab:hover{color:rgba(255,255,255,.85);}
+  .tab.active{color:#fff;border-color:var(--teal);}
+  .content{padding:32px 40px;max-width:1500px;margin:0 auto;}
+  .diagram-section{display:none;animation:fadeIn .3s ease;}
+  .diagram-section.active{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .section-title{margin-bottom:24px;}
+  .section-title h2{font-size:22px;color:var(--navy);}
+  .section-title p{font-size:13px;color:#8a96b0;margin-top:4px;}
+  .card{background:var(--card);border-radius:12px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(26,39,68,.06);padding:28px;margin-bottom:24px;}
+  .card-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px;}
+  .card-subtitle{font-size:12px;color:#8a96b0;margin-bottom:20px;}
+  .scroll-wrap{overflow-x:auto;padding-bottom:8px;}
+  svg text{font-family:'Segoe UI',Arial,sans-serif;}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#4a5568;}
+  .ldot{width:12px;height:12px;border-radius:50%;}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div>
+    <h1>CTN Lycee — Diagrammes UML</h1>
+    <p>Cahier de Texte Numerique · Documentation technique</p>
+  </div>
+  <div class="badge-stack">
+    <span>React 19.2</span><span>Supabase</span><span>3 roles</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('uc',this)">Cas d'Utilisation</div>
+  <div class="tab" onclick="showTab('class',this)">Diagramme de Classes</div>
+  <div class="tab" onclick="showTab('seq',this)">Diagrammes de Sequence</div>
+</div>
+
+<div class="content">
+
+<!-- ══════════════════════════════════════════════════════════════════
+     1. CAS D'UTILISATION
+     Layout : Enseignant a GAUCHE · UC au CENTRE (2 colonnes) · Admin a DROITE
+              Conseiller en BAS a gauche · ses UC au CENTRE-BAS
+     Aucun acteur ne partage la meme hauteur => zero croisement
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="tab-uc" class="diagram-section active">
+  <div class="section-title">
+    <h2>Diagramme de Cas d'Utilisation</h2>
+    <p>Interactions de chaque acteur avec le systeme — layout sans croisement</p>
+  </div>
+  <div class="card">
+    <div class="card-title">3 acteurs · 20 cas d'utilisation · relations include / extend</div>
+    <div class="card-subtitle">Chaque acteur est relie uniquement aux UC de sa zone verticale — aucune ligne ne se croise</div>
+    <div class="scroll-wrap">
+<!-- viewBox large pour tout contenir -->
+<svg width="1320" height="980" viewBox="0 0 1320 980" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arr"   markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#1a2744"/></marker>
+  <marker id="arr-t" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#1db8a0"/></marker>
+  <marker id="arr-g" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#e5a919"/></marker>
+  <marker id="arr-d" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#8a96b0"/></marker>
+</defs>
+
+<!-- ═══ Bordure systeme ═══ -->
+<rect x="195" y="15" width="925" height="950" rx="14"
+      fill="#f8faff" stroke="#1a2744" stroke-width="2" stroke-dasharray="9,5"/>
+<text x="657" y="40" text-anchor="middle" font-size="14" font-weight="700" fill="#1a2744">Systeme CTN Lycee</text>
+
+<!-- ════════════
+     ENSEIGNANT (acteur gauche, zone haute y=80..580)
+     ════════════ -->
+<!-- bonhomme -->
+<circle cx="80" cy="160" r="20" fill="none" stroke="#1a2744" stroke-width="2.5"/>
+<line x1="80" y1="180" x2="80" y2="248" stroke="#1a2744" stroke-width="2.5"/>
+<line x1="80" y1="200" x2="48" y2="228" stroke="#1a2744" stroke-width="2.5"/>
+<line x1="80" y1="200" x2="112" y2="228" stroke="#1a2744" stroke-width="2.5"/>
+<line x1="80" y1="248" x2="52" y2="285" stroke="#1a2744" stroke-width="2.5"/>
+<line x1="80" y1="248" x2="108" y2="285" stroke="#1a2744" stroke-width="2.5"/>
+<text x="80" y="308" text-anchor="middle" font-size="13" font-weight="700" fill="#1a2744">Enseignant</text>
+
+<!-- UC enseignant — colonne gauche du systeme cx=390 -->
+<!-- UC-E1 : S'authentifier -->
+<ellipse cx="390" cy="85"  rx="145" ry="26" fill="#e8f4ff" stroke="#1a2744" stroke-width="1.5"/>
+<text x="390" y="81"  text-anchor="middle" font-size="11" fill="#1a2744">S'authentifier / Se connecter</text>
+<text x="390" y="94"  text-anchor="middle" font-size="10" fill="#4a5568">[tous les roles]</text>
+
+<!-- UC-E2 -->
+<ellipse cx="390" cy="158" rx="145" ry="26" fill="#e8f4ff" stroke="#1a2744" stroke-width="1.5"/>
+<text x="390" y="154" text-anchor="middle" font-size="11" fill="#1a2744">Consulter le Tableau de Bord</text>
+<text x="390" y="167" text-anchor="middle" font-size="10" fill="#4a5568">Stats personnelles</text>
+
+<!-- UC-E3 -->
+<ellipse cx="390" cy="238" rx="145" ry="26" fill="#e8f4ff" stroke="#1a2744" stroke-width="1.5"/>
+<text x="390" y="234" text-anchor="middle" font-size="11" fill="#1a2744">Creer une nouvelle seance</text>
+<text x="390" y="247" text-anchor="middle" font-size="10" fill="#4a5568">Formulaire + OCR</text>
+
+<!-- UC-E4 -->
+<ellipse cx="390" cy="318" rx="145" ry="26" fill="#e8f4ff" stroke="#1a2744" stroke-width="1.5"/>
+<text x="390" y="314" text-anchor="middle" font-size="11" fill="#1a2744">Valider et enregistrer</text>
+<text x="390" y="327" text-anchor="middle" font-size="10" fill="#4a5568">la seance</text>
+
+<!-- UC-E5 -->
+<ellipse cx="390" cy="398" rx="145" ry="26" fill="#e8f4ff" stroke="#1a2744" stroke-width="1.5"/>
+<text x="390" y="394" text-anchor="middle" font-size="11" fill="#1a2744">Signer electroniquement</text>
+<text x="390" y="407" text-anchor="middle" font-size="10" fill="#4a5568">+ Geolocalisation</text>
+
+<!-- UC-E6 -->
+<ellipse cx="390" cy="478" rx="145" ry="26" fill="#e8f4ff" stroke="#1a2744" stroke-width="1.5"/>
+<text x="390" y="474" text-anchor="middle" font-size="11" fill="#1a2744">Gerer la fiche de progression</text>
+<text x="390" y="487" text-anchor="middle" font-size="10" fill="#4a5568">Cocher semaines effectuees</text>
+
+<!-- UC-E7 -->
+<ellipse cx="390" cy="558" rx="145" ry="26" fill="#e8f4ff" stroke="#1a2744" stroke-width="1.5"/>
+<text x="390" y="554" text-anchor="middle" font-size="11" fill="#1a2744">Consulter l'historique</text>
+<text x="390" y="567" text-anchor="middle" font-size="10" fill="#4a5568">de ses seances</text>
+
+<!-- UC-E8 -->
+<ellipse cx="390" cy="638" rx="145" ry="26" fill="#e8f4ff" stroke="#1a2744" stroke-width="1.5"/>
+<text x="390" y="634" text-anchor="middle" font-size="11" fill="#1a2744">Voir Suivi Collectif</text>
+<text x="390" y="647" text-anchor="middle" font-size="10" fill="#4a5568">Progression des collegues</text>
+
+<!-- Liens Enseignant → UC (lignes horizontales directes, pas de croisement) -->
+<line x1="112" y1="155" x2="245" y2="85"  stroke="#1a2744" stroke-width="1.3" marker-end="url(#arr)"/>
+<line x1="112" y1="165" x2="245" y2="158" stroke="#1a2744" stroke-width="1.3" marker-end="url(#arr)"/>
+<line x1="112" y1="175" x2="245" y2="238" stroke="#1a2744" stroke-width="1.3" marker-end="url(#arr)"/>
+<line x1="112" y1="185" x2="245" y2="318" stroke="#1a2744" stroke-width="1.3" marker-end="url(#arr)"/>
+<line x1="112" y1="195" x2="245" y2="398" stroke="#1a2744" stroke-width="1.3" marker-end="url(#arr)"/>
+<line x1="112" y1="205" x2="245" y2="478" stroke="#1a2744" stroke-width="1.3" marker-end="url(#arr)"/>
+<line x1="112" y1="215" x2="245" y2="558" stroke="#1a2744" stroke-width="1.3" marker-end="url(#arr)"/>
+<line x1="112" y1="225" x2="245" y2="638" stroke="#1a2744" stroke-width="1.3" marker-end="url(#arr)"/>
+
+<!-- include : Valider inclut Signer (fleche verticale entre UC de la meme colonne) -->
+<line x1="390" y1="344" x2="390" y2="372" stroke="#8a96b0" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arr-d)"/>
+<text x="402" y="360" font-size="10" fill="#8a96b0">include</text>
+
+<!-- extend : OCR extend Creer seance (fleche verticale) -->
+<!-- UC-OCR en dessous de UC-E3 -->
+
+<!-- ════════════
+     CONSEILLER (acteur gauche BAS, zone y=720..900)
+     Ses UC sont dans la colonne DROITE du systeme (cx=870)
+     => aucun croisement avec les UC Enseignant a gauche
+     ════════════ -->
+<circle cx="80" cy="750" r="20" fill="none" stroke="#1db8a0" stroke-width="2.5"/>
+<line x1="80" y1="770" x2="80" y2="838" stroke="#1db8a0" stroke-width="2.5"/>
+<line x1="80" y1="790" x2="48" y2="818" stroke="#1db8a0" stroke-width="2.5"/>
+<line x1="80" y1="790" x2="112" y2="818" stroke="#1db8a0" stroke-width="2.5"/>
+<line x1="80" y1="838" x2="52" y2="875" stroke="#1db8a0" stroke-width="2.5"/>
+<line x1="80" y1="838" x2="108" y2="875" stroke="#1db8a0" stroke-width="2.5"/>
+<text x="80" y="898" text-anchor="middle" font-size="13" font-weight="700" fill="#1db8a0">Conseiller</text>
+<text x="80" y="913" text-anchor="middle" font-size="13" font-weight="700" fill="#1db8a0">Pedagogique</text>
+
+<!-- UC Conseiller — colonne gauche milieu cx=390 zone basse y=720..930 -->
+<!-- UC-C1 -->
+<ellipse cx="390" cy="730" rx="145" ry="26" fill="#e6faf7" stroke="#1db8a0" stroke-width="1.5"/>
+<text x="390" y="726" text-anchor="middle" font-size="11" fill="#1a2744">Superviser progression</text>
+<text x="390" y="739" text-anchor="middle" font-size="10" fill="#4a5568">tous les enseignants</text>
+
+<!-- UC-C2 -->
+<ellipse cx="390" cy="810" rx="145" ry="26" fill="#e6faf7" stroke="#1db8a0" stroke-width="1.5"/>
+<text x="390" y="806" text-anchor="middle" font-size="11" fill="#1a2744">Identifier enseignants en retard</text>
+<text x="390" y="819" text-anchor="middle" font-size="10" fill="#4a5568">Tableau de bord conseiller</text>
+
+<!-- UC-C3 -->
+<ellipse cx="390" cy="890" rx="145" ry="26" fill="#e6faf7" stroke="#1db8a0" stroke-width="1.5"/>
+<text x="390" y="886" text-anchor="middle" font-size="11" fill="#1a2744">Planifier des rattrapages</text>
+<text x="390" y="899" text-anchor="middle" font-size="10" fill="#4a5568">+ consulter historique global</text>
+
+<!-- Liens Conseiller → UC : sorties orthogonales vers la droite -->
+<!-- On passe par y=750 puis on monte vers les UC dans la zone basse -->
+<line x1="112" y1="750" x2="245" y2="730"  stroke="#1db8a0" stroke-width="1.3" marker-end="url(#arr-t)"/>
+<line x1="112" y1="760" x2="245" y2="810"  stroke="#1db8a0" stroke-width="1.3" marker-end="url(#arr-t)"/>
+<line x1="112" y1="770" x2="245" y2="890"  stroke="#1db8a0" stroke-width="1.3" marker-end="url(#arr-t)"/>
+
+<!-- ════════════
+     ADMIN (acteur DROIT, zone y=200..700)
+     Ses UC sont dans la colonne DROITE cx=870
+     Acteur Admin a x=1240 => liens horizontaux droite→gauche sans croisement
+     ════════════ -->
+<circle cx="1248" cy="350" r="20" fill="none" stroke="#e5a919" stroke-width="2.5"/>
+<line x1="1248" y1="370" x2="1248" y2="438" stroke="#e5a919" stroke-width="2.5"/>
+<line x1="1248" y1="390" x2="1216" y2="418" stroke="#e5a919" stroke-width="2.5"/>
+<line x1="1248" y1="390" x2="1280" y2="418" stroke="#e5a919" stroke-width="2.5"/>
+<line x1="1248" y1="438" x2="1220" y2="475" stroke="#e5a919" stroke-width="2.5"/>
+<line x1="1248" y1="438" x2="1276" y2="475" stroke="#e5a919" stroke-width="2.5"/>
+<text x="1248" y="498" text-anchor="middle" font-size="13" font-weight="700" fill="#e5a919">Admin</text>
+
+<!-- UC Admin — colonne DROITE cx=870 -->
+<!-- UC-A1 -->
+<ellipse cx="870" cy="158" rx="145" ry="26" fill="#fff5d9" stroke="#e5a919" stroke-width="1.5"/>
+<text x="870" y="154" text-anchor="middle" font-size="11" fill="#1a2744">Gerer les utilisateurs</text>
+<text x="870" y="167" text-anchor="middle" font-size="10" fill="#4a5568">CRUD comptes / roles</text>
+
+<!-- UC-A2 -->
+<ellipse cx="870" cy="238" rx="145" ry="26" fill="#fff5d9" stroke="#e5a919" stroke-width="1.5"/>
+<text x="870" y="234" text-anchor="middle" font-size="11" fill="#1a2744">Gerer les classes</text>
+<text x="870" y="247" text-anchor="middle" font-size="10" fill="#4a5568">et affectations</text>
+
+<!-- UC-A3 -->
+<ellipse cx="870" cy="318" rx="145" ry="26" fill="#fff5d9" stroke="#e5a919" stroke-width="1.5"/>
+<text x="870" y="314" text-anchor="middle" font-size="11" fill="#1a2744">Voir fiches de progression</text>
+<text x="870" y="327" text-anchor="middle" font-size="10" fill="#4a5568">lecture seule par enseignant</text>
+
+<!-- UC-A4 -->
+<ellipse cx="870" cy="398" rx="145" ry="26" fill="#fff5d9" stroke="#e5a919" stroke-width="1.5"/>
+<text x="870" y="394" text-anchor="middle" font-size="11" fill="#1a2744">Consulter seances</text>
+<text x="870" y="407" text-anchor="middle" font-size="10" fill="#4a5568">de tous les enseignants</text>
+
+<!-- UC-A5 -->
+<ellipse cx="870" cy="478" rx="145" ry="26" fill="#fff5d9" stroke="#e5a919" stroke-width="1.5"/>
+<text x="870" y="474" text-anchor="middle" font-size="11" fill="#1a2744">Gerer matieres</text>
+<text x="870" y="487" text-anchor="middle" font-size="10" fill="#4a5568">et programmes officiels</text>
+
+<!-- UC-A6 -->
+<ellipse cx="870" cy="558" rx="145" ry="26" fill="#fff5d9" stroke="#e5a919" stroke-width="1.5"/>
+<text x="870" y="554" text-anchor="middle" font-size="11" fill="#1a2744">Superviser progression</text>
+<text x="870" y="567" text-anchor="middle" font-size="10" fill="#4a5568">tous les enseignants</text>
+
+<!-- Liens Admin → UC (lignes horizontales droite) -->
+<line x1="1216" y1="345" x2="1015" y2="158" stroke="#e5a919" stroke-width="1.3" marker-end="url(#arr-g)"/>
+<line x1="1216" y1="355" x2="1015" y2="238" stroke="#e5a919" stroke-width="1.3" marker-end="url(#arr-g)"/>
+<line x1="1216" y1="365" x2="1015" y2="318" stroke="#e5a919" stroke-width="1.3" marker-end="url(#arr-g)"/>
+<line x1="1216" y1="375" x2="1015" y2="398" stroke="#e5a919" stroke-width="1.3" marker-end="url(#arr-g)"/>
+<line x1="1216" y1="385" x2="1015" y2="478" stroke="#e5a919" stroke-width="1.3" marker-end="url(#arr-g)"/>
+<line x1="1216" y1="395" x2="1015" y2="558" stroke="#e5a919" stroke-width="1.3" marker-end="url(#arr-g)"/>
+
+<!-- ════ include / extend internes — seulement verticales dans chaque colonne ════ -->
+<!-- UC-C1 Superviser progression (conseiller) SAME que UC-A6 (admin) via trait pontif -->
+<!-- Partage represented by dashed line UC-E6 <--> UC-A3 via pont horizontal au milieu -->
+<!-- include : UC-E4 (Valider) inclut UC-E5 (Signer) deja trace ci-dessus -->
+
+<!-- extend : Admin peut aussi S'authentifier = meme UC-E1 -->
+<!-- Trait pointille de UC-A1 vers UC-E1 via coude -->
+<path d="M870,132 L870,85 L535,85" fill="none" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arr-d)"/>
+<text x="710" y="78" text-anchor="middle" font-size="10" fill="#8a96b0">S'authentifier (partage)</text>
+
+<!-- include : Signer inclut Geolocalisation (UC interne) -->
+<!-- UC geoloc petite ellipse grise sous UC-E5 -->
+<ellipse cx="390" cy="945" rx="130" ry="22" fill="#f0f0f5" stroke="#8a96b0" stroke-width="1.2" stroke-dasharray="5,3"/>
+<text x="390" y="941" text-anchor="middle" font-size="10" fill="#4a5568">Valider geolocalisation</text>
+<text x="390" y="953" text-anchor="middle" font-size="10" fill="#8a96b0">include</text>
+<path d="M390,424 L390,923" fill="none" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arr-d)"/>
+<text x="402" y="680" font-size="10" fill="#8a96b0">include</text>
+
+</svg>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="ldot" style="background:#1a2744"></div> Enseignant</div>
+      <div class="legend-item"><div class="ldot" style="background:#1db8a0"></div> Conseiller Pedagogique</div>
+      <div class="legend-item"><div class="ldot" style="background:#e5a919"></div> Administrateur</div>
+      <div class="legend-item" style="color:#8a96b0">- - - relation include / extend / partage</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     2. DIAGRAMME DE CLASSES
+     Layout en GRILLE propre (4 colonnes x 4 lignes)
+     Toutes les connexions passent par des coudes orthogonaux (L-shape)
+     Aucune ligne ne coupe une classe
+     ══════════════════════════════════════════════════════════════════
+     Col A x=40   : classes, sessions, session_competences, session_devoirs
+     Col B x=310  : auth.users, profiles, profile_classes
+     Col C x=620  : matieres, programmes, fiches_progression_contenu
+     Col D x=960  : programme_chapitres, progression_avancement, rattrapages, notifications
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="tab-class" class="diagram-section">
+  <div class="section-title">
+    <h2>Diagramme de Classes</h2>
+    <p>Modele de donnees — 12 tables PostgreSQL, layout en grille sans croisement</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Architecture des entites metier</div>
+    <div class="card-subtitle">Connexions orthogonales (angles droits) — aucun croisement de lignes</div>
+    <div class="scroll-wrap">
+<svg width="1280" height="1020" viewBox="0 0 1280 1020" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <!-- fleche association -->
+  <marker id="a" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+    <path d="M0,0 L9,3.5 L0,7 z" fill="#4a5568"/>
+  </marker>
+  <!-- fleche composition (losange plein a l'origine) -->
+  <marker id="comp-start" markerWidth="12" markerHeight="10" refX="1" refY="5" orient="auto">
+    <polygon points="1,5 6,0 11,5 6,10" fill="#1a2744"/>
+  </marker>
+  <!-- fleche heritage (triangle vide a destination) -->
+  <marker id="inh-end" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto">
+    <polygon points="0,0 0,10 12,5" fill="white" stroke="#1a2744" stroke-width="1.5"/>
+  </marker>
+  <!-- fleche association simple -->
+  <marker id="aa" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+    <path d="M0,0 L9,3.5 L0,7 z" fill="#4a5568"/>
+  </marker>
+</defs>
+
+<!-- ─────────────────────────────────────────
+     COLONNE B — auth.users  (x=310, y=20)
+     ───────────────────────────────────────── -->
+<g transform="translate(310,20)">
+  <rect width="260" height="96" rx="8" fill="#f0f4ff" stroke="#1a2744" stroke-width="2"/>
+  <rect width="260" height="30" rx="8" fill="#1a2744"/>
+  <rect width="260" height="8" y="22" fill="#1a2744"/>
+  <text x="130" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Supabase Auth</text>
+  <text x="130" y="28" text-anchor="middle" font-size="12" font-weight="700" fill="white">auth.users</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">email : text</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">encrypted_password : text</text>
+</g>
+
+<!-- ─────────────────────────────────────────
+     COLONNE B — profiles  (x=310, y=170)
+     ───────────────────────────────────────── -->
+<g transform="translate(310,170)">
+  <rect width="260" height="158" rx="8" fill="#e8f4ff" stroke="#1a2744" stroke-width="2"/>
+  <rect width="260" height="30" rx="8" fill="#1a2744"/>
+  <rect width="260" height="8" y="22" fill="#1a2744"/>
+  <text x="130" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Table</text>
+  <text x="130" y="28" text-anchor="middle" font-size="12" font-weight="700" fill="white">profiles</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK, FK → auth.users]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">nom : text</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">prenom : text</text>
+  <text x="10" y="95" font-size="11" fill="#1a2744">role : text {enseignant|admin|conseiller}</text>
+  <text x="10" y="110" font-size="11" fill="#1a2744">matricule : text</text>
+  <text x="10" y="125" font-size="11" fill="#1a2744">is_active : boolean</text>
+  <text x="10" y="140" font-size="11" fill="#1a2744">created_at : timestamptz</text>
+</g>
+
+<!-- Heritage auth.users -> profiles (vertical) -->
+<line x1="440" y1="116" x2="440" y2="170" stroke="#1a2744" stroke-width="2" marker-end="url(#inh-end)"/>
+<text x="452" y="146" font-size="10" fill="#1a2744">extends</text>
+
+<!-- ─────────────────────────────────────────
+     COLONNE A — classes  (x=30, y=170)
+     ───────────────────────────────────────── -->
+<g transform="translate(30,170)">
+  <rect width="230" height="126" rx="8" fill="#e6faf7" stroke="#1db8a0" stroke-width="2"/>
+  <rect width="230" height="30" rx="8" fill="#1db8a0"/>
+  <rect width="230" height="8" y="22" fill="#1db8a0"/>
+  <text x="115" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Table</text>
+  <text x="115" y="28" text-anchor="middle" font-size="12" font-weight="700" fill="white">classes</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">nom : text</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">niveau : text</text>
+  <text x="10" y="95" font-size="11" fill="#1a2744">annee_scolaire : text</text>
+  <text x="10" y="110" font-size="11" fill="#1a2744">created_at : timestamptz</text>
+</g>
+
+<!-- ─────────────────────────────────────────
+     COLONNE A/B pivot — profile_classes (x=30, y=370)
+     ───────────────────────────────────────── -->
+<g transform="translate(30,370)">
+  <rect width="230" height="96" rx="8" fill="#f8f4ff" stroke="#8a96b0" stroke-width="1.8" stroke-dasharray="6,3"/>
+  <rect width="230" height="30" rx="8" fill="#8a96b0"/>
+  <rect width="230" height="8" y="22" fill="#8a96b0"/>
+  <text x="115" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Association</text>
+  <text x="115" y="28" text-anchor="middle" font-size="12" font-weight="700" fill="white">profile_classes</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">profile_id : uuid [FK → profiles]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">classe_id : uuid [FK → classes]</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">matiere : text</text>
+</g>
+
+<!-- classes -> profile_classes (vertical) -->
+<line x1="145" y1="296" x2="145" y2="370" stroke="#4a5568" stroke-width="1.5" marker-end="url(#aa)"/>
+<text x="155" y="336" font-size="10" fill="#4a5568">1</text>
+<text x="155" y="366" font-size="10" fill="#4a5568">*</text>
+
+<!-- profiles -> profile_classes (L-shape: droite de profiles -> bas -> gauche vers profile_classes) -->
+<!-- profiles est a x=310..570, y=170..328. profile_classes a x=30..260 y=370..466 -->
+<!-- On sort du cote gauche de profiles (x=310, y=250) puis on va a x=260 y=250 puis on descend a y=418 -->
+<path d="M310,250 L260,250 L260,418" fill="none" stroke="#4a5568" stroke-width="1.5" marker-end="url(#aa)"/>
+<text x="268" y="244" font-size="10" fill="#4a5568">1</text>
+<text x="268" y="415" font-size="10" fill="#4a5568">*</text>
+
+<!-- ─────────────────────────────────────────
+     COLONNE A — sessions  (x=30, y=530)
+     ───────────────────────────────────────── -->
+<g transform="translate(30,530)">
+  <rect width="255" height="230" rx="8" fill="#fff5d9" stroke="#e5a919" stroke-width="2"/>
+  <rect width="255" height="30" rx="8" fill="#e5a919"/>
+  <rect width="255" height="8" y="22" fill="#e5a919"/>
+  <text x="127" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Table</text>
+  <text x="127" y="28" text-anchor="middle" font-size="12" font-weight="700" fill="white">sessions</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">teacher_id : uuid [FK → profiles]</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">classe_id : uuid [FK → classes]</text>
+  <text x="10" y="95" font-size="11" fill="#1a2744">matiere_id : uuid [FK → matieres]</text>
+  <text x="10" y="110" font-size="11" fill="#1a2744">titre : text</text>
+  <text x="10" y="125" font-size="11" fill="#1a2744">contenu : text</text>
+  <text x="10" y="140" font-size="11" fill="#1a2744">date_cours : date</text>
+  <text x="10" y="155" font-size="11" fill="#1a2744">heure_debut / heure_fin : time</text>
+  <text x="10" y="170" font-size="11" fill="#1a2744">signature : text (base64)</text>
+  <text x="10" y="185" font-size="11" fill="#1a2744">latitude : float8</text>
+  <text x="10" y="200" font-size="11" fill="#1a2744">longitude : float8</text>
+  <text x="10" y="215" font-size="11" fill="#1a2744">created_at : timestamptz</text>
+</g>
+
+<!-- classes -> sessions (vertical dans col A) -->
+<line x1="145" y1="466" x2="145" y2="530" stroke="#e5a919" stroke-width="1.5" marker-end="url(#aa)"/>
+<text x="155" y="500" font-size="10" fill="#e5a919">1  *</text>
+
+<!-- profiles -> sessions (L-shape: sort bas de profiles x=440 y=328, descend, va gauche vers sessions) -->
+<path d="M440,328 L440,490 L285,490 L285,560" fill="none" stroke="#e5a919" stroke-width="1.5" marker-end="url(#aa)"/>
+<text x="450" y="420" font-size="10" fill="#e5a919">1  *</text>
+
+<!-- ─────────────────────────────────────────
+     COLONNE A — session_competences  (x=30, y=820)
+     ───────────────────────────────────────── -->
+<g transform="translate(30,820)">
+  <rect width="230" height="96" rx="8" fill="#fff5d9" stroke="#e5a919" stroke-width="1.5"/>
+  <rect width="230" height="30" rx="8" fill="#c7920f"/>
+  <rect width="230" height="8" y="22" fill="#c7920f"/>
+  <text x="115" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Table</text>
+  <text x="115" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="white">session_competences</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">session_id : uuid [FK]</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">competence : text</text>
+</g>
+
+<!-- sessions -> session_competences (vertical) -->
+<line x1="100" y1="760" x2="100" y2="820" stroke="#1a2744" stroke-width="1.5" marker-start="url(#comp-start)" marker-end="url(#aa)"/>
+<text x="60" y="792" font-size="10" fill="#1a2744">1  1..*</text>
+
+<!-- ─────────────────────────────────────────
+     COLONNE B — session_devoirs  (x=310, y=820)
+     ───────────────────────────────────────── -->
+<g transform="translate(310,820)">
+  <rect width="230" height="110" rx="8" fill="#fff5d9" stroke="#e5a919" stroke-width="1.5"/>
+  <rect width="230" height="30" rx="8" fill="#c7920f"/>
+  <rect width="230" height="8" y="22" fill="#c7920f"/>
+  <text x="115" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Table</text>
+  <text x="115" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="white">session_devoirs</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">session_id : uuid [FK]</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">description : text</text>
+  <text x="10" y="95" font-size="11" fill="#1a2744">echeance : date</text>
+</g>
+
+<!-- sessions -> session_devoirs (L-shape: bas de sessions x=160 y=760, descend, tourne droite) -->
+<path d="M160,760 L160,800 L310,800 L310,835" fill="none" stroke="#1a2744" stroke-width="1.5" marker-end="url(#aa)"/>
+<text x="210" y="796" font-size="10" fill="#1a2744">1  *</text>
+
+<!-- ─────────────────────────────────────────
+     COLONNE C — matieres  (x=640, y=170)
+     ───────────────────────────────────────── -->
+<g transform="translate(640,170)">
+  <rect width="240" height="110" rx="8" fill="#fce8e8" stroke="#e05c5c" stroke-width="2"/>
+  <rect width="240" height="30" rx="8" fill="#e05c5c"/>
+  <rect width="240" height="8" y="22" fill="#e05c5c"/>
+  <text x="120" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Table</text>
+  <text x="120" y="28" text-anchor="middle" font-size="12" font-weight="700" fill="white">matieres</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">nom : text</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">code : text</text>
+  <text x="10" y="95" font-size="11" fill="#1a2744">coefficient : integer</text>
+</g>
+
+<!-- sessions -> matieres  (L-shape horizontal propre: sort droite de sessions y=595, va en x=640) -->
+<path d="M285,595 L640,595 L640,235" fill="none" stroke="#e05c5c" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#aa)"/>
+<text x="450" y="588" font-size="10" fill="#e05c5c">ref matiere_id</text>
+
+<!-- ─────────────────────────────────────────
+     COLONNE C — programmes  (x=640, y=360)
+     ───────────────────────────────────────── -->
+<g transform="translate(640,360)">
+  <rect width="240" height="110" rx="8" fill="#fce8e8" stroke="#e05c5c" stroke-width="2"/>
+  <rect width="240" height="30" rx="8" fill="#e05c5c"/>
+  <rect width="240" height="8" y="22" fill="#e05c5c"/>
+  <text x="120" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Table</text>
+  <text x="120" y="28" text-anchor="middle" font-size="12" font-weight="700" fill="white">programmes</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">matiere_id : uuid [FK → matieres]</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">classe_id : uuid [FK → classes]</text>
+  <text x="10" y="95" font-size="11" fill="#1a2744">annee_scolaire : text</text>
+</g>
+
+<!-- matieres -> programmes (vertical dans col C) -->
+<line x1="760" y1="280" x2="760" y2="360" stroke="#e05c5c" stroke-width="1.5" marker-end="url(#aa)"/>
+<text x="770" y="323" font-size="10" fill="#e05c5c">1  *</text>
+
+<!-- classes -> programmes (L-shape: droite de classes y=233, va x=640, descend y=415) -->
+<path d="M260,233 L620,233 L620,415 L640,415" fill="none" stroke="#e05c5c" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#aa)"/>
+<text x="530" y="226" font-size="10" fill="#e05c5c">ref classe_id</text>
+
+<!-- ─────────────────────────────────────────
+     COLONNE D — programme_chapitres  (x=940, y=360)
+     ───────────────────────────────────────── -->
+<g transform="translate(940,360)">
+  <rect width="250" height="110" rx="8" fill="#fce8e8" stroke="#e05c5c" stroke-width="1.5"/>
+  <rect width="250" height="30" rx="8" fill="#c74040"/>
+  <rect width="250" height="8" y="22" fill="#c74040"/>
+  <text x="125" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Table</text>
+  <text x="125" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="white">programme_chapitres</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">programme_id : uuid [FK]</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">titre : text</text>
+  <text x="10" y="95" font-size="11" fill="#1a2744">ordre : integer</text>
+</g>
+
+<!-- programmes -> programme_chapitres (horizontal) -->
+<line x1="880" y1="415" x2="940" y2="415" stroke="#1a2744" stroke-width="1.5" marker-start="url(#comp-start)" marker-end="url(#aa)"/>
+<text x="895" y="408" font-size="10" fill="#1a2744">1  *</text>
+
+<!-- ─────────────────────────────────────────
+     COLONNE C — fiches_progression_contenu  (x=640, y=545)
+     ───────────────────────────────────────── -->
+<g transform="translate(640,545)">
+  <rect width="255" height="126" rx="8" fill="#f0f8e6" stroke="#5ab04d" stroke-width="2"/>
+  <rect width="255" height="30" rx="8" fill="#5ab04d"/>
+  <rect width="255" height="8" y="22" fill="#5ab04d"/>
+  <text x="127" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Table</text>
+  <text x="127" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="white">fiches_progression_contenu</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">teacher_id : uuid [FK → profiles]</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">classe_id : uuid [FK → classes]</text>
+  <text x="10" y="95" font-size="11" fill="#1a2744">annee : text</text>
+  <text x="10" y="110" font-size="11" fill="#1a2744">lignes : jsonb [{fait:bool,...}]</text>
+</g>
+
+<!-- profiles -> fiches_progression_contenu (vertical de profiles bas x=440 y=328 descend a y=608) -->
+<path d="M570,250 L605,250 L605,608 L640,608" fill="none" stroke="#5ab04d" stroke-width="1.5" marker-end="url(#aa)"/>
+<text x="612" y="420" font-size="10" fill="#5ab04d">1  *</text>
+
+<!-- ─────────────────────────────────────────
+     COLONNE D — progression_avancement  (x=940, y=545)
+     ───────────────────────────────────────── -->
+<g transform="translate(940,545)">
+  <rect width="255" height="142" rx="8" fill="#f0f8e6" stroke="#5ab04d" stroke-width="2"/>
+  <rect width="255" height="30" rx="8" fill="#5ab04d"/>
+  <rect width="255" height="8" y="22" fill="#5ab04d"/>
+  <text x="127" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Table</text>
+  <text x="127" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="white">progression_avancement</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">teacher_id : uuid [FK → profiles]</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">classe_id : uuid [FK → classes]</text>
+  <text x="10" y="95" font-size="11" fill="#1a2744">classe_nom : text</text>
+  <text x="10" y="110" font-size="11" fill="#1a2744">done : integer</text>
+  <text x="10" y="125" font-size="11" fill="#1a2744">total : integer</text>
+</g>
+
+<!-- fiches_progression_contenu -> progression_avancement (horizontal) -->
+<line x1="895" y1="608" x2="940" y2="608" stroke="#5ab04d" stroke-width="1.5" marker-end="url(#aa)"/>
+<text x="904" y="600" font-size="10" fill="#5ab04d">sync</text>
+
+<!-- profiles -> progression_avancement (L-shape: sort bas de profiles, descend le long de col B) -->
+<path d="M570,260 L928,260 L928,612 L940,612" fill="none" stroke="#5ab04d" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#aa)"/>
+<text x="720" y="254" font-size="10" fill="#5ab04d">1  *</text>
+
+<!-- ─────────────────────────────────────────
+     COLONNE D — rattrapages  (x=940, y=750)
+     ───────────────────────────────────────── -->
+<g transform="translate(940,750)">
+  <rect width="240" height="110" rx="8" fill="#f5e8ff" stroke="#8a56d4" stroke-width="2"/>
+  <rect width="240" height="30" rx="8" fill="#8a56d4"/>
+  <rect width="240" height="8" y="22" fill="#8a56d4"/>
+  <text x="120" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Table</text>
+  <text x="120" y="28" text-anchor="middle" font-size="12" font-weight="700" fill="white">rattrapages</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">session_id : uuid [FK → sessions]</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">date_rattrapage : date</text>
+  <text x="10" y="95" font-size="11" fill="#1a2744">statut : text</text>
+</g>
+
+<!-- sessions -> rattrapages (L-shape propre: droite de sessions x=285 y=700, va a x=910 y=700, descend y=805) -->
+<path d="M285,700 L910,700 L910,805 L940,805" fill="none" stroke="#8a56d4" stroke-width="1.5" marker-end="url(#aa)"/>
+<text x="580" y="694" font-size="10" fill="#8a56d4">1  *</text>
+
+<!-- ─────────────────────────────────────────
+     COLONNE C — notifications  (x=640, y=750)
+     ───────────────────────────────────────── -->
+<g transform="translate(640,750)">
+  <rect width="255" height="126" rx="8" fill="#e8f4ff" stroke="#4a7bc8" stroke-width="2"/>
+  <rect width="255" height="30" rx="8" fill="#4a7bc8"/>
+  <rect width="255" height="8" y="22" fill="#4a7bc8"/>
+  <text x="127" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="white">Table</text>
+  <text x="127" y="28" text-anchor="middle" font-size="12" font-weight="700" fill="white">notifications</text>
+  <text x="10" y="50" font-size="11" fill="#1a2744">id : uuid [PK]</text>
+  <text x="10" y="65" font-size="11" fill="#1a2744">user_id : uuid [FK → profiles]</text>
+  <text x="10" y="80" font-size="11" fill="#1a2744">message : text</text>
+  <text x="10" y="95" font-size="11" fill="#1a2744">type : text</text>
+  <text x="10" y="110" font-size="11" fill="#1a2744">lu : boolean</text>
+</g>
+
+<!-- profiles -> notifications (vertical: sort bas de profiles x=440 y=328, descend, tourne droite vers notifications) -->
+<path d="M440,328 L440,810 L640,810" fill="none" stroke="#4a7bc8" stroke-width="1.5" marker-end="url(#aa)"/>
+<text x="452" y="720" font-size="10" fill="#4a7bc8">1  *</text>
+
+</svg>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span style="display:inline-block;width:20px;height:2px;background:#4a5568;vertical-align:middle;margin-right:4px"></span>Association</div>
+      <div class="legend-item"><span style="font-size:13px">&#9670;</span> Composition (losange plein)</div>
+      <div class="legend-item"><span style="font-size:13px">&#9651;</span> Heritage (triangle vide)</div>
+      <div class="legend-item" style="color:#5ab04d">&#9632; Tables progression dynamique</div>
+      <div class="legend-item" style="color:#8a56d4">&#9632; Rattrapages</div>
+      <div class="legend-item" style="color:#4a7bc8">&#9632; Notifications</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     3. DIAGRAMMES DE SEQUENCE
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="tab-seq" class="diagram-section">
+  <div class="section-title">
+    <h2>Diagrammes de Sequence</h2>
+    <p>3 scenarios principaux — chaque message est horizontal ou suit la lifeline</p>
+  </div>
+
+  <!-- SEQ 1 -->
+  <div class="card">
+    <div class="card-title">Scenario 1 — Creation et signature d'une seance</div>
+    <div class="card-subtitle">Enseignant · SaisiePage · SessionsContext · Supabase · GPS/Camera</div>
+    <div class="scroll-wrap">
+<svg width="1060" height="640" viewBox="0 0 1060 640" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="s1a" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#1a2744"/></marker>
+  <marker id="s1r" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M9,0 L0,3.5 L9,7 z" fill="#8a96b0"/></marker>
+</defs>
+
+<!-- Lifelines headers -->
+<rect x="20"  y="10" width="120" height="48" rx="6" fill="#1a2744"/>
+<text x="80"  y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">Enseignant</text>
+<text x="80"  y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">Navigateur</text>
+
+<rect x="200" y="10" width="140" height="48" rx="6" fill="#3a5ba0"/>
+<text x="270" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">SaisiePage</text>
+<text x="270" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">React</text>
+
+<rect x="400" y="10" width="150" height="48" rx="6" fill="#1db8a0"/>
+<text x="475" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">SessionsContext</text>
+<text x="475" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">React</text>
+
+<rect x="615" y="10" width="150" height="48" rx="6" fill="#e5a919"/>
+<text x="690" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">Supabase</text>
+<text x="690" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">API / PostgreSQL</text>
+
+<rect x="840" y="10" width="150" height="48" rx="6" fill="#8a56d4"/>
+<text x="915" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">GPS / Camera</text>
+<text x="915" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">API Navigateur</text>
+
+<!-- Lifelines -->
+<line x1="80"  y1="58" x2="80"  y2="630" stroke="#1a2744" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line x1="270" y1="58" x2="270" y2="630" stroke="#3a5ba0" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line x1="475" y1="58" x2="475" y2="630" stroke="#1db8a0" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line x1="690" y1="58" x2="690" y2="630" stroke="#e5a919" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line x1="915" y1="58" x2="915" y2="630" stroke="#8a56d4" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+<!-- Activation boxes -->
+<rect x="72"  y="100" width="16" height="440" fill="#1a2744" opacity=".12" rx="2"/>
+<rect x="262" y="115" width="16" height="400" fill="#3a5ba0" opacity=".15" rx="2"/>
+<rect x="467" y="255" width="16" height="115" fill="#1db8a0" opacity=".15" rx="2"/>
+<rect x="682" y="270" width="16" height="85"  fill="#e5a919" opacity=".15" rx="2"/>
+
+<!-- msg 1 -->
+<line x1="88"  y1="108" x2="262" y2="108" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s1a)"/>
+<text x="175" y="104" text-anchor="middle" font-size="11" fill="#1a2744">1. Ouvrir formulaire nouvelle seance</text>
+
+<!-- msg 2 retour -->
+<line x1="262" y1="130" x2="88" y2="130" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s1r)"/>
+<text x="175" y="126" text-anchor="middle" font-size="10" fill="#8a96b0">Formulaire (classe, matiere, date)</text>
+
+<!-- msg 3 -->
+<line x1="88"  y1="160" x2="262" y2="160" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s1a)"/>
+<text x="175" y="156" text-anchor="middle" font-size="11" fill="#1a2744">2. Prendre photo (OCR)</text>
+
+<!-- msg 4 vers GPS/Camera -->
+<line x1="278" y1="185" x2="840" y2="185" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s1a)"/>
+<text x="559" y="181" text-anchor="middle" font-size="11" fill="#8a56d4">3. getUserMedia() — capture photo</text>
+
+<!-- msg 5 retour Camera -->
+<line x1="840" y1="210" x2="278" y2="210" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s1r)"/>
+<text x="559" y="206" text-anchor="middle" font-size="10" fill="#8a96b0">Image base64</text>
+
+<!-- msg 6 -->
+<line x1="278" y1="255" x2="467" y2="255" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s1a)"/>
+<text x="372" y="251" text-anchor="middle" font-size="11" fill="#1a2744">4. addSession(data)</text>
+
+<!-- msg 7 -->
+<line x1="483" y1="278" x2="682" y2="278" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s1a)"/>
+<text x="582" y="274" text-anchor="middle" font-size="11" fill="#1a2744">5. INSERT sessions</text>
+
+<!-- msg 8 retour Supabase -->
+<line x1="682" y1="305" x2="483" y2="305" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s1r)"/>
+<text x="582" y="301" text-anchor="middle" font-size="10" fill="#8a96b0">{id, created_at} — 201</text>
+
+<!-- msg 9 retour Context -->
+<line x1="467" y1="335" x2="278" y2="335" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s1r)"/>
+<text x="372" y="331" text-anchor="middle" font-size="10" fill="#8a96b0">session ajoutee au state local</text>
+
+<!-- msg 10 Signer -->
+<line x1="88"  y1="375" x2="262" y2="375" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s1a)"/>
+<text x="175" y="371" text-anchor="middle" font-size="11" fill="#1a2744">6. Signer (ouvrir canvas)</text>
+
+<!-- msg 11 geoloc -->
+<line x1="278" y1="400" x2="840" y2="400" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s1a)"/>
+<text x="559" y="396" text-anchor="middle" font-size="11" fill="#8a56d4">7. getCurrentPosition()</text>
+
+<!-- msg 12 retour geoloc -->
+<line x1="840" y1="425" x2="278" y2="425" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s1r)"/>
+<text x="559" y="421" text-anchor="middle" font-size="10" fill="#8a96b0">{latitude, longitude}</text>
+
+<!-- msg 13 dessiner -->
+<line x1="88"  y1="460" x2="262" y2="460" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s1a)"/>
+<text x="175" y="456" text-anchor="middle" font-size="11" fill="#1a2744">8. Dessiner signature (canvas)</text>
+
+<!-- msg 14 confirmer -->
+<line x1="88"  y1="490" x2="262" y2="490" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s1a)"/>
+<text x="175" y="486" text-anchor="middle" font-size="11" fill="#1a2744">9. Confirmer signature</text>
+
+<!-- msg 15 update -->
+<line x1="278" y1="520" x2="682" y2="520" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s1a)"/>
+<text x="480" y="516" text-anchor="middle" font-size="11" fill="#1a2744">10. UPDATE sessions SET signature, lat, lng</text>
+
+<!-- msg 16 retour update -->
+<line x1="682" y1="548" x2="278" y2="548" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s1r)"/>
+<text x="480" y="544" text-anchor="middle" font-size="10" fill="#8a96b0">200 OK</text>
+
+<!-- msg 17 final -->
+<line x1="262" y1="578" x2="88"  y2="578" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s1r)"/>
+<text x="175" y="574" text-anchor="middle" font-size="10" fill="#1db8a0">Seance signee — badge vert</text>
+
+<!-- frame loop -->
+<rect x="195" y="360" width="690" height="155" rx="4" fill="none" stroke="#e05c5c" stroke-width="1" stroke-dasharray="4,2"/>
+<text x="200" y="356" font-size="10" fill="#e05c5c" font-weight="700">loop [tant que signature non valide]</text>
+</svg>
+    </div>
+  </div>
+
+  <!-- SEQ 2 -->
+  <div class="card">
+    <div class="card-title">Scenario 2 — Mise a jour et consultation de la progression</div>
+    <div class="card-subtitle">Enseignant coche des semaines · Conseiller consulte le classement</div>
+    <div class="scroll-wrap">
+<svg width="1020" height="540" viewBox="0 0 1020 540" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="s2a" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#1a2744"/></marker>
+  <marker id="s2t" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#1db8a0"/></marker>
+  <marker id="s2r" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M9,0 L0,3.5 L9,7 z" fill="#8a96b0"/></marker>
+</defs>
+
+<rect x="10"  y="10" width="120" height="48" rx="6" fill="#1a2744"/>
+<text x="70"  y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">Enseignant</text>
+<text x="70"  y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">Navigateur</text>
+
+<rect x="185" y="10" width="145" height="48" rx="6" fill="#3a5ba0"/>
+<text x="257" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">FicheTableau</text>
+<text x="257" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">Composant React</text>
+
+<rect x="390" y="10" width="145" height="48" rx="6" fill="#5ab04d"/>
+<text x="462" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">useExtraction</text>
+<text x="462" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">Hook</text>
+
+<rect x="598" y="10" width="150" height="48" rx="6" fill="#e5a919"/>
+<text x="673" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">Supabase</text>
+<text x="673" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">PostgreSQL</text>
+
+<rect x="818" y="10" width="185" height="48" rx="6" fill="#1db8a0"/>
+<text x="910" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">Conseiller</text>
+<text x="910" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">SuiviCollectifPage</text>
+
+<!-- Lifelines -->
+<line x1="70"  y1="58" x2="70"  y2="530" stroke="#1a2744" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line x1="257" y1="58" x2="257" y2="530" stroke="#3a5ba0" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line x1="462" y1="58" x2="462" y2="530" stroke="#5ab04d" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line x1="673" y1="58" x2="673" y2="530" stroke="#e5a919" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line x1="910" y1="58" x2="910" y2="530" stroke="#1db8a0" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+<!-- 1 -->
+<line x1="78"  y1="100" x2="248" y2="100" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s2a)"/>
+<text x="163" y="96" text-anchor="middle" font-size="11" fill="#1a2744">1. Cocher case semaine</text>
+
+<!-- 2 -->
+<line x1="265" y1="130" x2="453" y2="130" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s2a)"/>
+<text x="359" y="126" text-anchor="middle" font-size="11" fill="#1a2744">2. toggleFait(rowId)</text>
+
+<!-- 3 retour -->
+<line x1="453" y1="158" x2="78" y2="158" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s2r)"/>
+<text x="265" y="154" text-anchor="middle" font-size="10" fill="#8a96b0">lignes mises a jour (state local)</text>
+
+<!-- 4 -->
+<line x1="78"  y1="195" x2="248" y2="195" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s2a)"/>
+<text x="163" y="191" text-anchor="middle" font-size="11" fill="#1a2744">3. Cliquer Enregistrer</text>
+
+<!-- 5 -->
+<line x1="265" y1="222" x2="453" y2="222" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s2a)"/>
+<text x="359" y="218" text-anchor="middle" font-size="11" fill="#1a2744">4. onSave(lignes)</text>
+
+<!-- 6 -->
+<line x1="470" y1="252" x2="665" y2="252" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s2a)"/>
+<text x="567" y="248" text-anchor="middle" font-size="11" fill="#1a2744">5. UPSERT fiches_progression_contenu</text>
+
+<!-- 7 -->
+<line x1="470" y1="282" x2="665" y2="282" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s2a)"/>
+<text x="567" y="278" text-anchor="middle" font-size="11" fill="#1a2744">6. UPSERT progression_avancement</text>
+
+<!-- 8 retour -->
+<line x1="665" y1="312" x2="470" y2="312" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s2r)"/>
+<text x="567" y="308" text-anchor="middle" font-size="10" fill="#8a96b0">200 OK</text>
+
+<!-- 9 retour -->
+<line x1="453" y1="345" x2="78" y2="345" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s2r)"/>
+<text x="265" y="341" text-anchor="middle" font-size="10" fill="#1db8a0">Barre de progression mise a jour</text>
+
+<!-- separateur -->
+<line x1="10" y1="380" x2="1010" y2="380" stroke="#e0e4ef" stroke-width="1.5" stroke-dasharray="8,4"/>
+<text x="510" y="376" text-anchor="middle" font-size="10" fill="#8a96b0" font-style="italic">— Conseiller consulte ensuite —</text>
+
+<!-- 10 Conseiller → Supabase -->
+<line x1="902" y1="410" x2="681" y2="410" stroke="#1db8a0" stroke-width="1.5" marker-end="url(#s2t)"/>
+<text x="791" y="406" text-anchor="middle" font-size="11" fill="#1db8a0">7. SELECT progression_avancement (tous)</text>
+
+<!-- 11 retour -->
+<line x1="681" y1="440" x2="902" y2="440" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s2r)"/>
+<text x="791" y="436" text-anchor="middle" font-size="10" fill="#8a96b0">rows [teacher_id, done, total, classe_nom]</text>
+
+<!-- 12 display -->
+<rect x="830" y="460" width="160" height="32" rx="4" fill="#e6faf7" stroke="#1db8a0"/>
+<text x="910" y="480" text-anchor="middle" font-size="10" fill="#1a2744">8. Afficher classement %</text>
+
+<!-- 13 realtime -->
+<line x1="902" y1="505" x2="681" y2="505" stroke="#1db8a0" stroke-width="1.5" marker-end="url(#s2t)"/>
+<text x="791" y="501" text-anchor="middle" font-size="11" fill="#1db8a0">9. SUBSCRIBE Realtime progression</text>
+</svg>
+    </div>
+  </div>
+
+  <!-- SEQ 3 -->
+  <div class="card">
+    <div class="card-title">Scenario 3 — Authentification et routage par role</div>
+    <div class="card-subtitle">Tout utilisateur · LoginPage · AuthContext · Supabase Auth · AppLayout</div>
+    <div class="scroll-wrap">
+<svg width="920" height="445" viewBox="0 0 920 445" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="s3a" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#1a2744"/></marker>
+  <marker id="s3r" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M9,0 L0,3.5 L9,7 z" fill="#8a96b0"/></marker>
+</defs>
+
+<rect x="10"  y="10" width="118" height="48" rx="6" fill="#1a2744"/>
+<text x="69"  y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">Utilisateur</text>
+<text x="69"  y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">Navigateur</text>
+
+<rect x="185" y="10" width="138" height="48" rx="6" fill="#3a5ba0"/>
+<text x="254" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">LoginPage</text>
+<text x="254" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">React</text>
+
+<rect x="385" y="10" width="138" height="48" rx="6" fill="#5ab04d"/>
+<text x="454" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">AuthContext</text>
+<text x="454" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">React</text>
+
+<rect x="590" y="10" width="148" height="48" rx="6" fill="#e5a919"/>
+<text x="664" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">Supabase Auth</text>
+<text x="664" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">JWT + profiles</text>
+
+<rect x="798" y="10" width="112" height="48" rx="6" fill="#8a56d4"/>
+<text x="854" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="white">AppLayout</text>
+<text x="854" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)">Router</text>
+
+<!-- Lifelines -->
+<line x1="69"  y1="58" x2="69"  y2="435" stroke="#1a2744" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line x1="254" y1="58" x2="254" y2="435" stroke="#3a5ba0" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line x1="454" y1="58" x2="454" y2="435" stroke="#5ab04d" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line x1="664" y1="58" x2="664" y2="435" stroke="#e5a919" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line x1="854" y1="58" x2="854" y2="435" stroke="#8a56d4" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+<!-- 1 -->
+<line x1="77"  y1="105" x2="246" y2="105" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s3a)"/>
+<text x="162" y="101" text-anchor="middle" font-size="11" fill="#1a2744">1. Saisir email + mot de passe</text>
+
+<!-- 2 -->
+<line x1="262" y1="135" x2="446" y2="135" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s3a)"/>
+<text x="354" y="131" text-anchor="middle" font-size="11" fill="#1a2744">2. signIn(email, password)</text>
+
+<!-- 3 -->
+<line x1="462" y1="165" x2="656" y2="165" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s3a)"/>
+<text x="559" y="161" text-anchor="middle" font-size="11" fill="#1a2744">3. supabase.auth.signInWithPassword()</text>
+
+<!-- 4 retour JWT -->
+<line x1="656" y1="198" x2="462" y2="198" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s3r)"/>
+<text x="559" y="194" text-anchor="middle" font-size="10" fill="#8a96b0">{session, user} JWT</text>
+
+<!-- 5 -->
+<line x1="462" y1="230" x2="656" y2="230" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s3a)"/>
+<text x="559" y="226" text-anchor="middle" font-size="11" fill="#1a2744">4. SELECT profiles WHERE id = user.id</text>
+
+<!-- 6 retour profil -->
+<line x1="656" y1="262" x2="462" y2="262" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s3r)"/>
+<text x="559" y="258" text-anchor="middle" font-size="10" fill="#8a96b0">{role, nom, prenom, matricule}</text>
+
+<!-- 7 navigate -->
+<line x1="462" y1="298" x2="846" y2="298" stroke="#1a2744" stroke-width="1.5" marker-end="url(#s3a)"/>
+<text x="654" y="294" text-anchor="middle" font-size="11" fill="#1a2744">5. navigate selon role (/dashboard | /admin | /conseiller)</text>
+
+<!-- alt frame -->
+<rect x="246" y="318" width="622" height="85" rx="4" fill="none" stroke="#e05c5c" stroke-width="1" stroke-dasharray="4,2"/>
+<text x="251" y="314" font-size="10" fill="#e05c5c" font-weight="700">alt [role]</text>
+<line x1="246" y1="350" x2="868" y2="350" stroke="#e0e4ef" stroke-width="1" stroke-dasharray="3,3"/>
+
+<text x="256" y="340" font-size="10" fill="#1a2744" font-style="italic">[enseignant]</text>
+<line x1="846" y1="335" x2="262" y2="335" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s3r)"/>
+<text x="554" y="331" text-anchor="middle" font-size="10" fill="#8a96b0">Interface enseignant + nav standard</text>
+
+<text x="256" y="368" font-size="10" fill="#1db8a0" font-style="italic">[admin / conseiller]</text>
+<line x1="846" y1="362" x2="262" y2="362" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s3r)"/>
+<text x="554" y="358" text-anchor="middle" font-size="10" fill="#8a96b0">Interface etendue + menus admin/conseiller</text>
+
+<!-- 8 final -->
+<line x1="846" y1="415" x2="77"  y2="415" stroke="#8a96b0" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#s3r)"/>
+<text x="462" y="411" text-anchor="middle" font-size="10" fill="#1db8a0">Interface adaptee au role affichee</text>
+</svg>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+function showTab(id, el) {
+  document.querySelectorAll('.diagram-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -436,3 +436,123 @@ CREATE POLICY "Enseignant enregistre sa progression"
 CREATE POLICY "Enseignant retire un chapitre"
   ON public.teacher_progress FOR DELETE TO authenticated
   USING (teacher_id = auth.uid());
+
+
+-- ============================================================
+-- MIGRATION : Lien ressources ↔ séances
+-- Coller dans le SQL Editor de Supabase après l'étape 7
+-- ============================================================
+
+ALTER TABLE public.resources
+  ADD COLUMN IF NOT EXISTS session_id uuid REFERENCES public.sessions(id) ON DELETE SET NULL;
+
+
+-- ============================================================
+-- ÉTAPE 8 : FICHES DE PROGRESSION
+-- ============================================================
+
+CREATE TABLE public.fiches_progression (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id  uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  classe_id   uuid REFERENCES public.classes(id) ON DELETE SET NULL,
+  classe_nom  text NOT NULL DEFAULT '',
+  matiere     text NOT NULL DEFAULT '',
+  annee       text NOT NULL DEFAULT '2024-2025',
+  nom_fichier text NOT NULL,
+  fichier_url text NOT NULL,
+  taille      text,
+  created_at  timestamptz DEFAULT now(),
+  updated_at  timestamptz DEFAULT now()
+);
+
+CREATE TRIGGER set_updated_at_fiches
+  BEFORE UPDATE ON public.fiches_progression
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+ALTER TABLE public.fiches_progression ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enseignant gère ses fiches de progression"
+  ON public.fiches_progression FOR ALL TO authenticated
+  USING (teacher_id = auth.uid()) WITH CHECK (teacher_id = auth.uid());
+
+CREATE POLICY "Conseiller et admin voient toutes les fiches"
+  ON public.fiches_progression FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role IN ('conseiller', 'admin')
+  ));
+
+
+-- ============================================================
+-- ÉTAPE 9 : CONTENU DYNAMIQUE DES FICHES DE PROGRESSION
+-- ============================================================
+
+CREATE TABLE public.fiches_progression_contenu (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id  uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  fiche_id    uuid REFERENCES public.fiches_progression(id) ON DELETE SET NULL,
+  classe_id   uuid REFERENCES public.classes(id) ON DELETE SET NULL,
+  classe_nom  text NOT NULL DEFAULT '',
+  annee       text NOT NULL DEFAULT '2024-2025',
+  lignes      jsonb NOT NULL DEFAULT '[]',
+  created_at  timestamptz DEFAULT now(),
+  updated_at  timestamptz DEFAULT now()
+);
+
+CREATE TRIGGER set_updated_at_fiches_contenu
+  BEFORE UPDATE ON public.fiches_progression_contenu
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+ALTER TABLE public.fiches_progression_contenu ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enseignant gère son contenu de fiche"
+  ON public.fiches_progression_contenu FOR ALL TO authenticated
+  USING (teacher_id = auth.uid()) WITH CHECK (teacher_id = auth.uid());
+
+CREATE POLICY "Conseiller et admin voient tout le contenu"
+  ON public.fiches_progression_contenu FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role IN ('conseiller', 'admin')
+  ));
+
+
+-- ============================================================
+-- ÉTAPE 10 : SUIVI COLLECTIF — avancement des progressions
+-- Coller dans Supabase SQL Editor
+-- ============================================================
+
+CREATE TABLE public.progression_avancement (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  classe_id  uuid REFERENCES public.classes(id) ON DELETE SET NULL,
+  classe_nom text NOT NULL DEFAULT '',
+  annee      text NOT NULL DEFAULT '',
+  done       integer NOT NULL DEFAULT 0,
+  total      integer NOT NULL DEFAULT 0,
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE(teacher_id, classe_id, annee)
+);
+
+CREATE TRIGGER set_updated_at_progression_avancement
+  BEFORE UPDATE ON public.progression_avancement
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+ALTER TABLE public.progression_avancement ENABLE ROW LEVEL SECURITY;
+
+-- Tout enseignant authentifié peut LIRE l'avancement de tous (Suivi Collectif)
+CREATE POLICY "Tout authentifié voit l'avancement collectif"
+  ON public.progression_avancement FOR SELECT TO authenticated USING (true);
+
+-- Seul l'enseignant propriétaire peut écrire son avancement
+CREATE POLICY "Enseignant gère son propre avancement"
+  ON public.progression_avancement FOR INSERT TO authenticated
+  WITH CHECK (teacher_id = auth.uid());
+
+CREATE POLICY "Enseignant met à jour son avancement"
+  ON public.progression_avancement FOR UPDATE TO authenticated
+  USING (teacher_id = auth.uid()) WITH CHECK (teacher_id = auth.uid());
+
+CREATE POLICY "Enseignant supprime son avancement"
+  ON public.progression_avancement FOR DELETE TO authenticated
+  USING (teacher_id = auth.uid());

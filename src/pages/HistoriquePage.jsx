@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSessions } from '../context/SessionsContext';
 import SessionDetailModal from '../components/modals/SessionDetailModal';
 import { supabase } from '../supabaseClient';
+import { useOutletContext } from 'react-router-dom';
 
 const PERIODS = [
   { label: 'Toute la periode', value: 'all' },
@@ -26,7 +27,8 @@ function isInPeriod(dateCours, period) {
 export default function HistoriquePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { sessions, loading: loadingSess } = useSessions();
+  const { sessions, loading: loadingSess, fetchSessions } = useSessions();
+  const { showToast } = useOutletContext() || {};
 
   const isAdmin     = user?.role === 'admin' || user?.role === 'conseiller';
   const isEnseignant = user?.role === 'enseignant';
@@ -56,6 +58,31 @@ export default function HistoriquePage() {
   const [filterSigned,    setFilterSigned]     = useState('');
 
   const [selectedSession, setSelectedSession] = useState(null);
+
+  const handleVisa = async (sessionId) => {
+    const { error } = await supabase
+      .from('sessions')
+      .update({
+        visa_by:   user.id,
+        visa_name: user.name,
+        visa_at:   new Date().toISOString(),
+      })
+      .eq('id', sessionId);
+
+    if (error) {
+      showToast?.('Erreur lors du visa : ' + error.message, 'error');
+    } else {
+      showToast?.('Séance visée avec succès.', 'success');
+      await fetchSessions();
+      // Met à jour le modal avec les nouvelles données
+      setSelectedSession(prev => prev ? {
+        ...prev,
+        visaBy:   user.id,
+        visaName: user.name,
+        visaAt:   new Date().toISOString(),
+      } : null);
+    }
+  };
 
   // Séances selon le rôle
   const baseSessions = useMemo(() => {
@@ -236,6 +263,7 @@ export default function HistoriquePage() {
               <tbody>
                 {filtered.map(s => {
                   const isSigned = !!s.signature;
+                  const isVise   = !!s.visaAt;
                   return (
                     <tr key={s.id}>
                       <td style={{ fontSize: '12px', whiteSpace: 'nowrap', color: 'var(--text2)' }}>
@@ -265,9 +293,16 @@ export default function HistoriquePage() {
                         )}
                       </td>
                       <td>
-                        {isSigned
-                          ? <span className="badge badge-success">Signe</span>
-                          : <span className="badge badge-danger">Non signe</span>}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {isSigned
+                            ? <span className="badge badge-success">✓ Signé</span>
+                            : <span className="badge badge-danger">Non signé</span>}
+                          {isVise
+                            ? <span className="badge badge-neutral" style={{ fontSize: '10px', color: 'var(--teal)', background: 'rgba(26,140,122,0.1)', border: '1px solid rgba(26,140,122,0.2)' }}>◉ Visé</span>
+                            : isSigned && isAdmin
+                              ? <span className="badge badge-neutral" style={{ fontSize: '10px', color: 'var(--text3)' }}>Non visé</span>
+                              : null}
+                        </div>
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '6px' }}>
@@ -300,6 +335,8 @@ export default function HistoriquePage() {
         isOpen={selectedSession !== null}
         onClose={() => setSelectedSession(null)}
         session={selectedSession}
+        user={user}
+        onVisa={handleVisa}
       />
     </div>
   );

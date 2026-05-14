@@ -120,7 +120,7 @@ export default function LoginPage() {
           {mode === 'login' && (
             <form onSubmit={handleLoginSubmit}>
               <h2>Connexion</h2>
-              <p>Accédez à votre espace personnel (Supabase Auth)</p>
+              <p>Accédez à votre espace personnel</p>
 
               {errorMsg && (
                 <div style={{ padding: '10px 14px', background: 'rgba(217,95,75,0.1)', color: 'var(--coral)', borderRadius: '8px', fontSize: '13px', marginBottom: '16px', border: '1px solid rgba(217,95,75,0.2)' }}>

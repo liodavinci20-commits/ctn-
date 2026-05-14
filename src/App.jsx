@@ -12,6 +12,7 @@ import RessourcesPage from './pages/RessourcesPage';
 import NotificationsPage from './pages/NotificationsPage';
 
 import ConseillerPage from './pages/ConseillerPage';
+import ClassesPage from './pages/ClassesPage';
 import AdminPage from './pages/AdminPage';
 import ProfilePage from './pages/ProfilePage';
 import ProgressionPage from './pages/ProgressionPage';
@@ -69,6 +70,7 @@ export default function App() {
 
            <Route path="progression" element={<ProgressionPage />} />
            <Route path="suivi" element={<SuiviCollectifPage />} />
+           <Route path="classes" element={<ClassesPage />} />
            <Route path="conseiller" element={<ConseillerPage />} />
            <Route path="admin" element={<AdminPage />} />
            <Route path="profil" element={<ProfilePage />} />

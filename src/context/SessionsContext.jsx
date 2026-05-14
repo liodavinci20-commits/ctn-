@@ -68,6 +68,9 @@ export function SessionsProvider({ children }) {
     geoLng:          row.geo_lng,
     geoTime:         row.geo_time,
     signature:       row.signature,
+    visaBy:          row.visa_by   || null,
+    visaAt:          row.visa_at   || null,
+    visaName:        row.visa_name || null,
   });
 
   // Insère une nouvelle séance + ses compétences + ses devoirs

@@ -196,15 +196,19 @@ export default function DashboardPage() {
             {salutation()}, {user?.name?.split(' ')[0] || 'Enseignant'} 👋
           </div>
           <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '4px' }}>
-            {mySessions.length === 0
-              ? 'Commencez par saisir votre première séance.'
-              : `${thisWeekCount > 0 ? `${thisWeekCount} séance${thisWeekCount > 1 ? 's' : ''} cette semaine` : 'Aucune séance cette semaine'} · ${signedPct}% des séances signées`}
+            {user?.role === 'enseignant'
+              ? mySessions.length === 0
+                ? 'Commencez par saisir votre première séance.'
+                : `${thisWeekCount > 0 ? `${thisWeekCount} séance${thisWeekCount > 1 ? 's' : ''} cette semaine` : 'Aucune séance cette semaine'} · ${signedPct}% des séances signées`
+              : `${sessions.length} séance${sessions.length > 1 ? 's' : ''} enregistrée${sessions.length > 1 ? 's' : ''} dans le système`}
           </div>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <Link to="/saisie" className="btn btn-gold btn-sm" style={{ whiteSpace: 'nowrap' }}>
-            ✦ Nouvelle séance
-          </Link>
+          {user?.role === 'enseignant' && (
+            <Link to="/saisie" className="btn btn-gold btn-sm" style={{ whiteSpace: 'nowrap' }}>
+              ✦ Nouvelle séance
+            </Link>
+          )}
           {unreadNotifs > 0 && (
             <Link to="/notifications" className="btn btn-ghost btn-sm"
               style={{ color: '#fff', border: '1px solid rgba(255,255,255,0.3)', whiteSpace: 'nowrap' }}>
@@ -286,9 +290,11 @@ export default function DashboardPage() {
               <p style={{ color: 'var(--text3)', fontSize: '13px', marginBottom: '12px' }}>
                 Aucune séance enregistrée pour l'instant.
               </p>
-              <Link to="/saisie" className="btn btn-navy btn-sm" style={{ display: 'inline-flex' }}>
-                ✦ Saisir ma première séance
-              </Link>
+              {user?.role === 'enseignant' && (
+                <Link to="/saisie" className="btn btn-navy btn-sm" style={{ display: 'inline-flex' }}>
+                  ✦ Saisir ma première séance
+                </Link>
+              )}
             </div>
           )}
 
@@ -475,10 +481,12 @@ export default function DashboardPage() {
                     }}>{tag}</span>
                   ))}
                 </div>
-                <Link to="/saisie" className="btn btn-gold btn-sm"
-                  style={{ width: '100%', justifyContent: 'center' }}>
-                  ✦ Préparer la séance
-                </Link>
+                {user?.role === 'enseignant' && (
+                  <Link to="/saisie" className="btn btn-gold btn-sm"
+                    style={{ width: '100%', justifyContent: 'center' }}>
+                    ✦ Préparer la séance
+                  </Link>
+                )}
               </div>
             )}
           </div>

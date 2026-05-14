@@ -64,6 +64,7 @@ export const MENUS = {
   ],
   admin: [
     { id: 'admin', icon: '⬥', label: 'Administration', path: '/admin' },
+    { id: 'classes', icon: '▦', label: 'Gestion des classes', path: '/classes' },
     { id: 'conseiller', icon: '◉', label: 'Vue pédagogique', path: '/conseiller' },
     { id: 'historique', icon: '✶', label: 'Toutes les séances', path: '/historique' },
     { id: 'notifications', icon: '⚑', label: 'Notifications', badge: 3, path: '/notifications' },
@@ -79,6 +80,7 @@ export const PAGE_TITLES = {
   suivi: ['Suivi Collectif', 'État d\'avancement des collègues par classe'],
   ressources: ['Bibliothèque des Ressources', 'Supports pédagogiques'],
   notifications: ['Notifications', 'Alertes et rappels'],
+  classes: ['Gestion des Classes', 'Organisation des classes de l\'établissement'],
   conseiller: ['Vue Conseiller Pédagogique', 'Suivi global · 2024–2025'],
   admin: ['Administration', 'Gestion du système CTN'],
   profil: ['Mon Profil', 'Photo et classes enseignées'],

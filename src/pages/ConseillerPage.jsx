@@ -324,9 +324,6 @@ export default function ConseillerPage() {
               <button className="btn btn-navy" onClick={openRattrapage} style={{ justifyContent: 'center' }}>
                 Planifier des rattrapages
               </button>
-              <button className="btn btn-ghost" style={{ justifyContent: 'center' }}>
-                Exporter le rapport PDF
-              </button>
             </div>
           </div>
         </div>

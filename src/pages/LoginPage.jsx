@@ -198,15 +198,6 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              {/* DEMO */}
-              <div className="login-demo" style={{ marginTop: '20px' }}>
-                <p>✦ Démonstration rapide (Comptes @ctn.cm)</p>
-                <div className="demo-btns">
-                  <button type="button" className="demo-btn" disabled={loading} onClick={() => handleDemoLogin('enseignant')}>◎ Enseignant</button>
-                  <button type="button" className="demo-btn" disabled={loading} onClick={() => handleDemoLogin('conseiller')}>◎ Conseiller</button>
-                  <button type="button" className="demo-btn" disabled={loading} onClick={() => handleDemoLogin('admin')}>◎ Admin</button>
-                </div>
-              </div>
             </form>
           )}
 

@@ -132,7 +132,7 @@ export default function AdminPage() {
     <div className="page active fade-in">
       <div className="section-title">
         <h3>⬥ Administration Générale</h3>
-        <p>Gestion du système CTN · Lycée Général Leclerc · 2024–2025</p>
+        <p>Gestion du système CTN · 2024–2025</p>
       </div>
 
       {/* Stats */}

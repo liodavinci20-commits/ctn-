@@ -41,12 +41,24 @@ export default function SaisiePage() {
   const [matiere, setMatiere] = useState(editSession?.matiere || 'Mathématiques');
   const [title, setTitle] = useState(editSession?.title || 'Complexité des algorithmes');
   const [content, setContent] = useState(editSession?.content || 'Introduction à la notion de complexité temporelle et spatiale...');
+  const [situationProbleme, setSituationProbleme] = useState(editSession?.situation_probleme || '');
   
   const [competences, setCompetences] = useState(editSession?.competences || ['Analyser un algorithme', 'Calculer une complexité']);
   const [compInput, setCompInput] = useState('');
   const [devoirs, setDevoirs] = useState(editSession?.devoirs || [{ desc: 'Exercices 3, 4, 5 p.92 sur la complexité', date: '2024-10-22' }]);
   const [selectedChips, setSelectedChips] = useState({ type: editSession?.typeSeance || 'Cours' });
   const [allChips, setAllChips] = useState({ eleves: ['Tout le groupe'] });
+
+  // Champs complémentaires contrôlés
+  const [dateCours, setDateCours]               = useState(editSession?.dateCours || new Date().toISOString().split('T')[0]);
+  const [creneau, setCreneau]                   = useState(editSession?.duree || '10h00 – 12h00');
+  const [soustitre, setSoustitre]               = useState(editSession?.sous_titre || '');
+  const [plan, setPlan]                         = useState(editSession?.plan || '');
+  const [numeroSeance, setNumeroSeance]         = useState(editSession?.numero_seance || '');
+  const [effectifPresent, setEffectifPresent]   = useState(editSession?.effectif_present ?? 0);
+  const [effectifTotal, setEffectifTotal]       = useState(editSession?.effectif_total ?? 0);
+  const [progression, setProgression]           = useState(editSession?.progression || 'Leçon en cours (34–66%)');
+  const [observations, setObservations]         = useState(editSession?.observations || '');
 
   // Prévisualisation + edition progression depuis la saisie
   const [showProgModal, setShowProgModal] = useState(false);
@@ -295,6 +307,7 @@ export default function SaisiePage() {
           classeId,
           matiereId:    matiereId || null,
           content,
+          situationProbleme,
           typeSeance:   selectedChips.type || 'Cours',
           competences,
           devoirs,
@@ -511,10 +524,10 @@ export default function SaisiePage() {
             <div className="form-row cols-2">
               <div className="form-field">
                 <label>Séquence du programme ✶</label>
-                <select className="field-select" defaultValue="Séquence 2 — Algorithmique">
-                  <option>Séquence 1 — Fonctions</option>
-                  <option>Séquence 2 — Algorithmique</option>
-                  <option>Séquence 3 — Probabilités</option>
+                <select className="field-select" defaultValue="Séquence 1">
+                  {[1,2,3,4,5,6].map(n => (
+                    <option key={n}>Séquence {n}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-field">
@@ -640,6 +653,17 @@ export default function SaisiePage() {
                 <label>Plan de séance</label>
                 <input className="field-input" defaultValue="I · Introduction  II · Complexités  III · Comparaison" />
               </div>
+            </div>
+
+            <div className="form-field">
+              <label>Situation problème</label>
+              <textarea
+                className="field-textarea"
+                style={{ minHeight: '90px', resize: 'vertical' }}
+                placeholder="Décrivez la situation problème qui introduit la séance…"
+                value={situationProbleme}
+                onChange={e => setSituationProbleme(e.target.value)}
+              />
             </div>
 
             <div className="form-field">

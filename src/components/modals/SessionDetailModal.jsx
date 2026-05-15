@@ -93,6 +93,16 @@ export default function SessionDetailModal({ isOpen, onClose, session, user, onV
                 <p style={{ fontSize: '14px', color: 'var(--navy)', marginTop: '4px', fontWeight: 500 }}>{session.plan}</p>
               </div>
             )}
+            {session.situationProbleme && (
+              <div style={{ marginBottom: '16px' }}>
+                <strong style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--text3)', letterSpacing: '0.05em' }}>
+                  Situation problème
+                </strong>
+                <div style={{ fontSize: '14px', color: 'var(--text2)', background: 'var(--cream2)', padding: '12px 16px', borderRadius: '8px', marginTop: '4px', lineHeight: '1.6' }}>
+                  {session.situationProbleme}
+                </div>
+              </div>
+            )}
             <strong style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--text3)', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>
               Déroulement & Contenu
             </strong>
